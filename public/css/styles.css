@@ -223,6 +223,19 @@ body {
     margin-bottom: 20px;
     padding-bottom: 15px;
     border-bottom: 3px solid;
+    transition: all 0.3s ease;
+}
+
+/* Header sticky quand on filtre par une personne */
+.person-header.sticky-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: inherit;
+    padding-top: 15px;
+    margin-top: -15px;
+    margin-bottom: 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .papa .person-header {
@@ -464,6 +477,18 @@ body {
 .progress-section {
     margin: 20px 0;
     padding: 0 10px;
+    transition: all 0.3s ease;
+}
+
+/* Barre de progression sticky quand on filtre par une personne */
+.progress-section.sticky-progress {
+    position: sticky;
+    top: 90px; /* Juste en dessous du header */
+    z-index: 99;
+    background: inherit;
+    padding: 15px 10px;
+    margin: 0 -15px 20px -15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .progress-bar {

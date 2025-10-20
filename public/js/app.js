@@ -369,11 +369,30 @@ function applyFilter(filter) {
     
     sections.forEach(section => {
         const person = section.dataset.person;
+        const header = section.querySelector('.person-header');
+        const progressSection = section.querySelector('.progress-section');
         
         if (filter === 'all' || filter === person) {
             section.classList.remove('hidden');
+            
+            // Si on filtre par une personne spécifique (pas "all"), rendre le header sticky
+            if (filter !== 'all' && filter === person) {
+                header.classList.add('sticky-header');
+                if (progressSection) {
+                    progressSection.classList.add('sticky-progress');
+                }
+            } else {
+                header.classList.remove('sticky-header');
+                if (progressSection) {
+                    progressSection.classList.remove('sticky-progress');
+                }
+            }
         } else {
             section.classList.add('hidden');
+            header.classList.remove('sticky-header');
+            if (progressSection) {
+                progressSection.classList.remove('sticky-progress');
+            }
         }
     });
 }
