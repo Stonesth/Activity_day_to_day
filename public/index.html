@@ -283,6 +283,63 @@
                 <p id="pinError" class="pin-error hidden">❌ Code incorrect</p>
             </div>
         </div>
+
+        <!-- Modale Édition de Tâche -->
+        <div id="editTaskModal" class="modal hidden">
+            <div class="modal-content modal-large">
+                <h3>✏️ Modifier la Tâche</h3>
+                
+                <form id="editTaskForm">
+                    <input type="hidden" id="editTaskId">
+                    
+                    <div class="form-group">
+                        <label for="editTaskTitle">Titre de la tâche *</label>
+                        <input type="text" id="editTaskTitle" required placeholder="Ex: Ranger sa chambre">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editTaskDescription">Description</label>
+                        <textarea id="editTaskDescription" rows="3" placeholder="Détails de la tâche..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editAssignedTo">Assignée à *</label>
+                        <select id="editAssignedTo" required>
+                            <option value="">Choisir une personne</option>
+                            <option value="papa">Papa</option>
+                            <option value="maman">Maman</option>
+                            <option value="bastien">Bastien</option>
+                            <option value="florent">Florent</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editStars">Nombre d'étoiles ⭐</label>
+                        <select id="editStars">
+                            <option value="1">⭐ 1 étoile</option>
+                            <option value="2">⭐⭐ 2 étoiles</option>
+                            <option value="3">⭐⭐⭐ 3 étoiles</option>
+                            <option value="4">⭐⭐⭐⭐ 4 étoiles</option>
+                            <option value="5">⭐⭐⭐⭐⭐ 5 étoiles</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editCategory">Catégorie</label>
+                        <select id="editCategory">
+                            <option value="quotidien">Quotidien</option>
+                            <option value="hebdomadaire">Hebdomadaire</option>
+                            <option value="mensuel">Mensuel</option>
+                        </select>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button type="button" id="cancelEditBtn" class="btn-secondary">Annuler</button>
+                        <button type="submit" class="btn-primary">Enregistrer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <!-- Firebase SDK -->

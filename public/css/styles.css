@@ -647,6 +647,46 @@ body {
     animation: slideUp 0.3s ease;
 }
 
+.modal-content.modal-large {
+    max-width: 600px;
+    text-align: left;
+}
+
+.modal-content.modal-large h3 {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.modal-content .form-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.modal-content .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+}
+
+.modal-content .form-group input,
+.modal-content .form-group textarea,
+.modal-content .form-group select {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.modal-content .form-group input:focus,
+.modal-content .form-group textarea:focus,
+.modal-content .form-group select:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
 @keyframes slideUp {
     from {
         transform: translateY(50px);
@@ -735,14 +775,35 @@ body {
     20%, 40%, 60%, 80% { transform: translateX(5px); }
 }
 
-/* Boutons de suppression cachés par défaut */
+/* Boutons de modification et suppression cachés par défaut */
+.task-actions .btn-edit,
 .task-actions .btn-delete {
     display: none;
 }
 
-/* Afficher les boutons de suppression uniquement en mode admin */
+/* Afficher les boutons uniquement en mode admin */
+.admin-mode-active .task-actions .btn-edit,
 .admin-mode-active .task-actions .btn-delete {
     display: inline-block;
+}
+
+/* Style du bouton Modifier */
+.btn-edit {
+    background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    margin-right: 8px;
+}
+
+.btn-edit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
 }
 
 /* Responsive */

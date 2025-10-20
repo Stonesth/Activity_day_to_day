@@ -4,6 +4,7 @@ import {
     updateDoc, 
     deleteDoc, 
     doc, 
+    getDoc,
     onSnapshot,
     query,
     orderBy,
@@ -58,6 +59,10 @@ function setupEventListeners() {
             validatePin();
         }
     });
+    
+    // Édition de tâche
+    document.getElementById('cancelEditBtn').addEventListener('click', closeEditTaskModal);
+    document.getElementById('editTaskForm').addEventListener('submit', handleEditTaskSubmit);
 }
 
 // Afficher/masquer le formulaire
@@ -233,6 +238,9 @@ function createTaskElement(task, person) {
             <span class="task-date">📅 ${formatDate(task.createdAt)}</span>
         </div>
         <div class="task-actions">
+            <button class="btn-edit" onclick="editTask('${task.id}')">
+                ✏️ Modifier
+            </button>
             <button class="btn-delete" onclick="deleteTask('${task.id}')">
                 🗑️ Supprimer
             </button>
@@ -270,6 +278,74 @@ window.deleteTask = async function(taskId) {
         showNotification('Erreur lors de la suppression', 'error');
     }
 };
+
+// ===== ÉDITION DE TÂCHE =====
+
+// Ouvrir la modale d'édition et charger les données de la tâche
+window.editTask = async function(taskId) {
+    try {
+        const taskDoc = await getDoc(doc(window.db, 'tasks', taskId));
+        
+        if (!taskDoc.exists()) {
+            showNotification('Tâche introuvable', 'error');
+            return;
+        }
+        
+        const task = taskDoc.data();
+        
+        // Remplir le formulaire avec les données de la tâche
+        document.getElementById('editTaskId').value = taskId;
+        document.getElementById('editTaskTitle').value = task.title;
+        document.getElementById('editTaskDescription').value = task.description || '';
+        document.getElementById('editAssignedTo').value = task.assignedTo;
+        document.getElementById('editStars').value = task.stars;
+        document.getElementById('editCategory').value = task.category;
+        
+        // Ouvrir la modale
+        document.getElementById('editTaskModal').classList.remove('hidden');
+        
+        // Focus sur le titre après l'animation
+        setTimeout(() => {
+            document.getElementById('editTaskTitle').focus();
+        }, 300);
+        
+    } catch (error) {
+        console.error('Erreur lors du chargement de la tâche:', error);
+        showNotification('Erreur lors du chargement', 'error');
+    }
+};
+
+// Fermer la modale d'édition
+function closeEditTaskModal() {
+    document.getElementById('editTaskModal').classList.add('hidden');
+    document.getElementById('editTaskForm').reset();
+}
+
+// Gérer la soumission du formulaire d'édition
+async function handleEditTaskSubmit(e) {
+    e.preventDefault();
+    
+    const taskId = document.getElementById('editTaskId').value;
+    const taskData = {
+        title: document.getElementById('editTaskTitle').value.trim(),
+        description: document.getElementById('editTaskDescription').value.trim(),
+        assignedTo: document.getElementById('editAssignedTo').value,
+        stars: parseInt(document.getElementById('editStars').value),
+        category: document.getElementById('editCategory').value,
+        updatedAt: serverTimestamp()
+    };
+    
+    try {
+        await updateDoc(doc(window.db, 'tasks', taskId), taskData);
+        
+        showNotification('✅ Tâche modifiée avec succès !', 'success');
+        closeEditTaskModal();
+        
+    } catch (error) {
+        console.error('Erreur lors de la modification:', error);
+        showNotification('Erreur lors de la modification', 'error');
+    }
+}
 
 // Gestion des filtres
 function handleFilterClick(e) {
