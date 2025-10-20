@@ -129,6 +129,7 @@ Chaque tâche contient :
 - 🔒 [Guide de sécurité Firebase](SECURITY.md)
 - 🌍 [Gestion de l'environnement (Node.js vs Python)](ENVIRONMENT.md)
 - 🚨 [Gérer l'alerte GitHub "Secret détecté"](GITHUB_ALERT.md)
+- 🔐 [Mode Admin - Protection par code PIN](ADMIN_MODE.md)
 
 ## Sécurité
 
