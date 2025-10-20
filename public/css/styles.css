@@ -254,6 +254,12 @@ body {
     border-color: var(--florent-color);
 }
 
+.person-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
 .person-name {
     font-size: 2rem;
     font-weight: bold;
@@ -666,14 +672,15 @@ body {
     background: linear-gradient(135deg, #FF9800 0%, #FF5722 100%);
     color: white;
     border: none;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 0.9rem;
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 0.85rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
     white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .btn-reset:hover {
