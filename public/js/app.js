@@ -299,13 +299,19 @@ function showNotification(message, type = 'info') {
     notification.className = `notification notification-${type}`;
     notification.textContent = message;
     
+    // Déterminer la couleur selon le type
+    let bgColor;
+    if (type === 'success') bgColor = '#4CAF50';
+    else if (type === 'error') bgColor = '#f44336';
+    else bgColor = '#2196F3'; // info
+    
     // Styles inline pour la notification
     Object.assign(notification.style, {
         position: 'fixed',
         top: '20px',
         right: '20px',
         padding: '15px 25px',
-        background: type === 'success' ? '#4CAF50' : '#f44336',
+        background: bgColor,
         color: 'white',
         borderRadius: '10px',
         boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
@@ -436,36 +442,6 @@ function disableAdminMode() {
     container.classList.remove('admin-mode-active');
     
     showNotification('🔒 Mode Admin désactivé', 'info');
-}
-
-// Fonction de notification (simple)
-function showNotification(message, type = 'info') {
-    // Créer la notification
-    const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
-    notification.textContent = message;
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 15px 25px;
-        background: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#2196F3'};
-        color: white;
-        border-radius: 10px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        z-index: 2000;
-        animation: slideInRight 0.3s ease;
-    `;
-    
-    document.body.appendChild(notification);
-    
-    // Retirer après 3 secondes
-    setTimeout(() => {
-        notification.style.animation = 'slideOutRight 0.3s ease';
-        setTimeout(() => {
-            notification.remove();
-        }, 300);
-    }, 3000);
 }
 
 // Ajouter les animations CSS
