@@ -14,8 +14,9 @@ Application web dynamique permettant à toute la famille de gérer et suivre les
 - 🔄 Synchronisation en temps réel avec Firebase Firestore
 - 📱 Interface responsive (mobile et desktop)
 - 🎨 Design coloré avec code couleur par personne
-- 📊 Statistiques de progression par personne
-- 🏷️ Catégories et priorités des tâches
+- ⭐ Système d'étoiles : chaque tâche rapporte de 1 à 5 étoiles
+- 📊 Statistiques avec total d'étoiles gagnées par personne
+- 🏷️ Catégories des tâches (quotidien, hebdomadaire, mensuel)
 - ✓ Système de check-list interactif
 
 ## Membres de la Famille
@@ -106,10 +107,12 @@ Chaque tâche contient :
 - `description` : Description détaillée
 - `assignedTo` : Personne assignée (papa, maman, bastien, florent)
 - `completed` : État de complétion (boolean)
-- `priority` : Priorité (basse, moyenne, haute)
+- `stars` : Nombre d'étoiles gagnées (1 à 5) ⭐
 - `category` : Catégorie (quotidien, hebdomadaire, mensuel)
 - `createdAt` : Date de création
 - `updatedAt` : Date de mise à jour
+
+**Système d'étoiles** : Chaque tâche rapporte de 1 à 5 étoiles. Plus la tâche est importante ou difficile, plus elle vaut d'étoiles ! Les étoiles sont comptabilisées uniquement lorsque la tâche est complétée.
 
 ## Technologies Utilisées
 

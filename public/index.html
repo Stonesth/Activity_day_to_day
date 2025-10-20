@@ -51,12 +51,17 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="priority">Priorité</label>
-                    <select id="priority">
-                        <option value="basse">Basse</option>
-                        <option value="moyenne" selected>Moyenne</option>
-                        <option value="haute">Haute</option>
+                    <label for="stars">Nombre d'étoiles ⭐</label>
+                    <select id="stars">
+                        <option value="1">⭐ 1 étoile</option>
+                        <option value="2">⭐⭐ 2 étoiles</option>
+                        <option value="3" selected>⭐⭐⭐ 3 étoiles</option>
+                        <option value="4">⭐⭐⭐⭐ 4 étoiles</option>
+                        <option value="5">⭐⭐⭐⭐⭐ 5 étoiles</option>
                     </select>
+                    <small style="color: #666; font-size: 0.9em; margin-top: 5px; display: block;">
+                        Plus la tâche est importante ou difficile, plus elle vaut d'étoiles !
+                    </small>
                 </div>
                 
                 <div class="form-group">
@@ -81,7 +86,8 @@
                 <div class="person-header">
                     <div class="person-name">👨 Papa</div>
                     <div class="stats">
-                        <span class="completed-count">0</span>/<span class="total-count">0</span>
+                        <div class="stars-earned">⭐ <span class="stars-count">0</span></div>
+                        <div class="tasks-count"><span class="completed-count">0</span>/<span class="total-count">0</span> tâches</div>
                     </div>
                 </div>
                 <div class="tasks-list" id="tasks-papa"></div>
@@ -91,7 +97,8 @@
                 <div class="person-header">
                     <div class="person-name">👩 Maman</div>
                     <div class="stats">
-                        <span class="completed-count">0</span>/<span class="total-count">0</span>
+                        <div class="stars-earned">⭐ <span class="stars-count">0</span></div>
+                        <div class="tasks-count"><span class="completed-count">0</span>/<span class="total-count">0</span> tâches</div>
                     </div>
                 </div>
                 <div class="tasks-list" id="tasks-maman"></div>
@@ -101,7 +108,8 @@
                 <div class="person-header">
                     <div class="person-name">👦 Bastien</div>
                     <div class="stats">
-                        <span class="completed-count">0</span>/<span class="total-count">0</span>
+                        <div class="stars-earned">⭐ <span class="stars-count">0</span></div>
+                        <div class="tasks-count"><span class="completed-count">0</span>/<span class="total-count">0</span> tâches</div>
                     </div>
                 </div>
                 <div class="tasks-list" id="tasks-bastien"></div>
@@ -111,7 +119,8 @@
                 <div class="person-header">
                     <div class="person-name">🧒 Florent</div>
                     <div class="stats">
-                        <span class="completed-count">0</span>/<span class="total-count">0</span>
+                        <div class="stars-earned">⭐ <span class="stars-count">0</span></div>
+                        <div class="tasks-count"><span class="completed-count">0</span>/<span class="total-count">0</span> tâches</div>
                     </div>
                 </div>
                 <div class="tasks-list" id="tasks-florent"></div>

@@ -66,7 +66,7 @@ async function handleTaskSubmit(e) {
         title: document.getElementById('taskTitle').value.trim(),
         description: document.getElementById('taskDescription').value.trim(),
         assignedTo: document.getElementById('assignedTo').value,
-        priority: document.getElementById('priority').value,
+        stars: parseInt(document.getElementById('stars').value),
         category: document.getElementById('category').value,
         completed: false,
         createdAt: serverTimestamp(),
@@ -152,9 +152,13 @@ function renderPersonTasks(person, tasks) {
     // Mettre à jour les statistiques
     const totalCount = tasks.length;
     const completedCount = tasks.filter(t => t.completed).length;
+    const starsEarned = tasks
+        .filter(t => t.completed)
+        .reduce((sum, t) => sum + (t.stars || 0), 0);
     
     section.querySelector('.total-count').textContent = totalCount;
     section.querySelector('.completed-count').textContent = completedCount;
+    section.querySelector('.stars-count').textContent = starsEarned;
     
     // Vider le conteneur
     container.innerHTML = '';
@@ -177,14 +181,16 @@ function createTaskElement(task, person) {
     div.className = `task-item ${task.completed ? 'completed' : ''}`;
     div.dataset.taskId = task.id;
     
+    const starsDisplay = '⭐'.repeat(task.stars || 1);
+    
     div.innerHTML = `
         <div class="task-header">
             <div class="checkbox ${task.completed ? 'checked' : ''}" 
                  onclick="toggleTaskCompletion('${task.id}', ${!task.completed})">
             </div>
             <div class="task-title">${escapeHtml(task.title)}</div>
-            <span class="task-priority priority-${task.priority}">
-                ${task.priority}
+            <span class="task-stars">
+                ${starsDisplay}
             </span>
         </div>
         ${task.description ? `

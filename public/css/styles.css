@@ -263,9 +263,30 @@ body {
 }
 
 .stats {
-    font-size: 1.5rem;
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.stars-earned {
+    font-size: 1.8rem;
     font-weight: bold;
+    color: #FFD700;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.stars-count {
+    font-size: 1.8rem;
+}
+
+.tasks-count {
+    font-size: 0.9rem;
     color: #666;
+    font-weight: normal;
 }
 
 /* Liste des tâches */
@@ -371,26 +392,17 @@ body {
     text-decoration: line-through;
 }
 
-.task-priority {
+.task-stars {
     padding: 4px 12px;
     border-radius: 20px;
-    font-size: 0.85rem;
+    font-size: 1.1rem;
     font-weight: 600;
-}
-
-.priority-haute {
-    background: #ffebee;
-    color: #c62828;
-}
-
-.priority-moyenne {
-    background: #fff3e0;
-    color: #e65100;
-}
-
-.priority-basse {
-    background: #e8f5e9;
-    color: #2e7d32;
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
 }
 
 .task-description {

@@ -50,12 +50,18 @@ Transformer le tableau statique des tâches familiales en une application web dy
   "description": "Description détaillée",
   "assignedTo": "papa|maman|bastien|florent",
   "completed": false,
+  "stars": 3,
   "createdAt": "timestamp",
   "updatedAt": "timestamp",
-  "category": "quotidien|hebdomadaire|mensuel",
-  "priority": "basse|moyenne|haute"
+  "category": "quotidien|hebdomadaire|mensuel"
 }
 ```
+
+**Système d'étoiles** :
+- Chaque tâche a une valeur de 1 à 5 étoiles ⭐
+- Les étoiles représentent l'importance ou la difficulté de la tâche
+- Les étoiles sont comptabilisées uniquement quand la tâche est complétée
+- Le total d'étoiles gagnées est affiché pour chaque personne
 
 #### Collection `family_members`
 ```json
