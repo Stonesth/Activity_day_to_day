@@ -327,6 +327,35 @@ body {
     opacity: 0.6;
 }
 
+/* Drag & Drop */
+.task-item.dragging {
+    opacity: 0.5;
+    transform: rotate(3deg);
+    cursor: grabbing;
+}
+
+.task-item.drag-over {
+    border: 3px dashed #667eea;
+    background: #f0f4ff;
+}
+
+.drag-handle {
+    cursor: grab;
+    color: #999;
+    font-size: 1.2rem;
+    padding: 5px;
+    user-select: none;
+    transition: color 0.3s ease;
+}
+
+.drag-handle:hover {
+    color: #667eea;
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+}
+
 .task-header {
     display: flex;
     align-items: center;

@@ -5,8 +5,10 @@ import {
     deleteDoc, 
     doc, 
     getDoc,
+    getDocs,
     onSnapshot,
     query,
+    where,
     orderBy,
     serverTimestamp 
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
@@ -87,13 +89,22 @@ async function handleTaskSubmit(e) {
         return;
     }
     
+    // Obtenir le nombre actuel de tâches pour calculer l'ordre
+    const assignedTo = document.getElementById('assignedTo').value;
+    const existingTasksSnapshot = await getDocs(
+        query(collection(window.db, 'tasks'), 
+              where('assignedTo', '==', assignedTo))
+    );
+    const nextOrder = existingTasksSnapshot.size;
+    
     const taskData = {
         title: document.getElementById('taskTitle').value.trim(),
         description: document.getElementById('taskDescription').value.trim(),
-        assignedTo: document.getElementById('assignedTo').value,
+        assignedTo: assignedTo,
         stars: parseInt(starsElement.value) || 3,
         category: document.getElementById('category').value,
         completed: false,
+        order: nextOrder,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
     };
@@ -119,10 +130,11 @@ function loadTasks() {
         unsubscribe();
     }
     
-    // Créer une requête pour récupérer toutes les tâches
+    // Créer une requête pour récupérer toutes les tâches triées par ordre personnalisé
     const q = query(
         collection(window.db, 'tasks'),
-        orderBy('createdAt', 'desc')
+        orderBy('assignedTo'),
+        orderBy('order')
     );
     
     // Écouter les changements en temps réel
@@ -215,11 +227,14 @@ function createTaskElement(task, person) {
     const div = document.createElement('div');
     div.className = `task-item ${task.completed ? 'completed' : ''}`;
     div.dataset.taskId = task.id;
+    div.dataset.assignedTo = task.assignedTo;
+    div.draggable = true;
     
     const starsDisplay = '⭐'.repeat(task.stars || 1);
     
     div.innerHTML = `
         <div class="task-header">
+            <div class="drag-handle" title="Glisser pour réorganiser">⋮⋮</div>
             <div class="checkbox ${task.completed ? 'checked' : ''}" 
                  onclick="toggleTaskCompletion('${task.id}', ${!task.completed})">
             </div>
@@ -246,6 +261,14 @@ function createTaskElement(task, person) {
             </button>
         </div>
     `;
+    
+    // Ajouter les événements de drag & drop
+    div.addEventListener('dragstart', handleDragStart);
+    div.addEventListener('dragover', handleDragOver);
+    div.addEventListener('drop', handleDrop);
+    div.addEventListener('dragend', handleDragEnd);
+    div.addEventListener('dragenter', handleDragEnter);
+    div.addEventListener('dragleave', handleDragLeave);
     
     return div;
 }
@@ -465,6 +488,104 @@ function updateProgressBar(section, starsEarned, starsMax) {
             milestone.classList.remove('unlocked');
         }
     });
+}
+
+// ===== DRAG & DROP =====
+
+let draggedElement = null;
+
+function handleDragStart(e) {
+    draggedElement = e.currentTarget;
+    e.currentTarget.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', e.currentTarget.innerHTML);
+}
+
+function handleDragOver(e) {
+    if (e.preventDefault) {
+        e.preventDefault();
+    }
+    e.dataTransfer.dropEffect = 'move';
+    return false;
+}
+
+function handleDragEnter(e) {
+    const target = e.currentTarget;
+    if (draggedElement && target !== draggedElement && 
+        target.classList.contains('task-item') &&
+        target.dataset.assignedTo === draggedElement.dataset.assignedTo) {
+        target.classList.add('drag-over');
+    }
+}
+
+function handleDragLeave(e) {
+    e.currentTarget.classList.remove('drag-over');
+}
+
+async function handleDrop(e) {
+    if (e.stopPropagation) {
+        e.stopPropagation();
+    }
+    e.preventDefault();
+    
+    const target = e.currentTarget;
+    target.classList.remove('drag-over');
+    
+    if (draggedElement && target !== draggedElement && 
+        target.classList.contains('task-item') &&
+        target.dataset.assignedTo === draggedElement.dataset.assignedTo) {
+        
+        // Réorganiser visuellement
+        const container = target.parentNode;
+        const allTasks = Array.from(container.querySelectorAll('.task-item'));
+        const draggedIndex = allTasks.indexOf(draggedElement);
+        const targetIndex = allTasks.indexOf(target);
+        
+        if (draggedIndex < targetIndex) {
+            target.parentNode.insertBefore(draggedElement, target.nextSibling);
+        } else {
+            target.parentNode.insertBefore(draggedElement, target);
+        }
+        
+        // Mettre à jour l'ordre dans Firestore
+        await updateTasksOrder(container);
+    }
+    
+    return false;
+}
+
+function handleDragEnd(e) {
+    e.currentTarget.classList.remove('dragging');
+    
+    // Retirer les classes drag-over de tous les éléments
+    document.querySelectorAll('.task-item').forEach(item => {
+        item.classList.remove('drag-over');
+    });
+    
+    draggedElement = null;
+}
+
+// Mettre à jour l'ordre des tâches dans Firestore
+async function updateTasksOrder(container) {
+    const tasks = Array.from(container.querySelectorAll('.task-item'));
+    const batch = [];
+    
+    tasks.forEach((taskElement, index) => {
+        const taskId = taskElement.dataset.taskId;
+        batch.push(
+            updateDoc(doc(window.db, 'tasks', taskId), {
+                order: index,
+                updatedAt: serverTimestamp()
+            })
+        );
+    });
+    
+    try {
+        await Promise.all(batch);
+    } catch (error) {
+        console.error('Erreur lors de la mise à jour de l\'ordre:', error);
+        showNotification('Erreur lors du réarrangement', 'error');
+    }
 }
 
 // Utilitaires
