@@ -125,6 +125,7 @@ Chaque tâche contient :
 - ✅ [Liste des tâches de développement](TODO.md)
 - 🔒 [Guide de sécurité Firebase](SECURITY.md)
 - 🌍 [Gestion de l'environnement (Node.js vs Python)](ENVIRONMENT.md)
+- 🚨 [Gérer l'alerte GitHub "Secret détecté"](GITHUB_ALERT.md)
 
 ## Sécurité
 
