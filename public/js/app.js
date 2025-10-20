@@ -62,11 +62,19 @@ function toggleForm() {
 async function handleTaskSubmit(e) {
     e.preventDefault();
     
+    // Vérifier que tous les champs nécessaires existent
+    const starsElement = document.getElementById('stars');
+    if (!starsElement) {
+        console.error('Le champ "stars" n\'existe pas dans le formulaire.');
+        showNotification('Erreur : Veuillez rafraîchir la page (Ctrl+Shift+R)', 'error');
+        return;
+    }
+    
     const taskData = {
         title: document.getElementById('taskTitle').value.trim(),
         description: document.getElementById('taskDescription').value.trim(),
         assignedTo: document.getElementById('assignedTo').value,
-        stars: parseInt(document.getElementById('stars').value),
+        stars: parseInt(starsElement.value) || 3,
         category: document.getElementById('category').value,
         completed: false,
         createdAt: serverTimestamp(),
