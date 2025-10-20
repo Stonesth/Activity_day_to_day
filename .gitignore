@@ -248,3 +248,6 @@ ui-debug.log
 
 # Cache
 .cache/
+
+# Firebase
+dont_commit/firestore.json

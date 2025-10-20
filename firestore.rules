@@ -8,9 +8,26 @@ service cloud.firestore {
       // Permettre la lecture à tous
       allow read: if true;
       
-      // Permettre la création, modification et suppression à tous
-      // Note: Pour plus de sécurité, vous pouvez ajouter l'authentification plus tard
-      allow create, update, delete: if true;
+      // Validation des données lors de la création/modification
+      allow create: if request.resource.data.keys().hasAll(['title', 'assignedTo', 'completed', 'priority', 'category'])
+                    && request.resource.data.title is string
+                    && request.resource.data.title.size() > 0
+                    && request.resource.data.title.size() <= 200
+                    && request.resource.data.assignedTo in ['papa', 'maman', 'bastien', 'florent']
+                    && request.resource.data.completed is bool
+                    && request.resource.data.priority in ['basse', 'moyenne', 'haute']
+                    && request.resource.data.category in ['quotidien', 'hebdomadaire', 'mensuel'];
+      
+      allow update: if request.resource.data.keys().hasAll(['title', 'assignedTo', 'completed', 'priority', 'category'])
+                    && request.resource.data.title is string
+                    && request.resource.data.title.size() > 0
+                    && request.resource.data.title.size() <= 200
+                    && request.resource.data.assignedTo in ['papa', 'maman', 'bastien', 'florent']
+                    && request.resource.data.completed is bool
+                    && request.resource.data.priority in ['basse', 'moyenne', 'haute']
+                    && request.resource.data.category in ['quotidien', 'hebdomadaire', 'mensuel'];
+      
+      allow delete: if true;
     }
     
     // Règles pour la collection family_members
@@ -18,8 +35,8 @@ service cloud.firestore {
       // Permettre la lecture à tous
       allow read: if true;
       
-      // Permettre la modification des statistiques
-      allow update: if true;
+      // Permettre la modification des statistiques uniquement
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['tasksCompleted']);
       
       // Empêcher la création et suppression (données fixes)
       allow create, delete: if false;

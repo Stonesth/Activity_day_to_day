@@ -123,13 +123,19 @@ Chaque tâche contient :
 - 📖 [Guide de configuration](SETUP.md)
 - 📋 [Spécifications complètes](SPECIFICATIONS.md)
 - ✅ [Liste des tâches de développement](TODO.md)
+- 🔒 [Guide de sécurité Firebase](SECURITY.md)
+- 🌍 [Gestion de l'environnement (Node.js vs Python)](ENVIRONMENT.md)
 
 ## Sécurité
 
-⚠️ **Note importante** : Les règles Firestore actuelles sont configurées en mode permissif pour faciliter le développement. Pour une utilisation en production, il est recommandé de :
-1. Activer Firebase Authentication
-2. Restreindre les règles d'accès à Firestore
-3. Implémenter un système d'authentification
+✅ **Les clés Firebase dans le code sont sécurisées** - Elles sont publiques par design.
+
+🛡️ **La vraie sécurité vient des règles Firestore** qui ont été renforcées avec :
+- Validation des champs obligatoires
+- Limitation des valeurs possibles (assignedTo, priority, category)
+- Protection contre les données invalides
+
+📖 **Pour en savoir plus** : Consultez [SECURITY.md](SECURITY.md) pour le guide complet de sécurité
 
 ## Versions
 
