@@ -187,6 +187,9 @@ function renderPersonTasks(person, tasks) {
     section.querySelector('.stars-count').textContent = starsEarned;
     section.querySelector('.stars-max').textContent = starsMax;
     
+    // Calculer et mettre à jour la barre de progression
+    updateProgressBar(section, starsEarned, starsMax);
+    
     // Vider le conteneur
     container.innerHTML = '';
     
@@ -335,6 +338,38 @@ function showNotification(message, type = 'info') {
             notification.remove();
         }, 300);
     }, 3000);
+}
+
+// Mettre à jour la barre de progression
+function updateProgressBar(section, starsEarned, starsMax) {
+    const progressFill = section.querySelector('.progress-fill');
+    const progressValue = section.querySelector('.progress-value');
+    const milestones = section.querySelectorAll('.milestone');
+    
+    // Calculer le pourcentage (éviter division par zéro)
+    const percentage = starsMax > 0 ? Math.round((starsEarned / starsMax) * 100) : 0;
+    
+    // Mettre à jour la barre de progression
+    if (progressFill) {
+        progressFill.style.width = `${percentage}%`;
+        progressFill.setAttribute('data-progress', percentage);
+    }
+    
+    // Mettre à jour le texte du pourcentage
+    if (progressValue) {
+        progressValue.textContent = percentage;
+    }
+    
+    // Mettre à jour les paliers (25%, 50%, 75%, 90%)
+    milestones.forEach(milestone => {
+        const milestoneValue = parseInt(milestone.getAttribute('data-milestone'));
+        
+        if (percentage >= milestoneValue) {
+            milestone.classList.add('unlocked');
+        } else {
+            milestone.classList.remove('unlocked');
+        }
+    });
 }
 
 // Utilitaires
