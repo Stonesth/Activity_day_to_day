@@ -553,7 +553,7 @@ body {
     position: absolute;
     top: 50%;
     transform: translate(-50%, -50%);
-    z-index: 10;
+    z-index: 105;
 }
 
 .milestone-marker {
@@ -598,7 +598,7 @@ body {
     opacity: 0;
     transition: all 0.3s ease;
     pointer-events: none;
-    z-index: 100;
+    z-index: 110;
 }
 
 .milestone:hover .milestone-label {
