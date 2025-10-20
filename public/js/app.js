@@ -13,6 +13,8 @@ import {
 // Variables globales
 let currentFilter = 'all';
 let unsubscribe = null;
+let isAdminMode = false;
+const ADMIN_PIN = '1571';
 
 // Initialisation au chargement de la page
 document.addEventListener('DOMContentLoaded', () => {
@@ -45,6 +47,16 @@ function setupEventListeners() {
     // Filtres
     document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.addEventListener('click', handleFilterClick);
+    });
+    
+    // Mode Admin
+    document.getElementById('adminModeBtn').addEventListener('click', handleAdminModeClick);
+    document.getElementById('cancelPinBtn').addEventListener('click', closePinModal);
+    document.getElementById('validatePinBtn').addEventListener('click', validatePin);
+    document.getElementById('pinInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            validatePin();
+        }
     });
 }
 
@@ -335,6 +347,127 @@ function formatDate(timestamp) {
     return date.toLocaleDateString('fr-FR');
 }
 
+// ===== GESTION DU MODE ADMIN =====
+
+// Gérer le clic sur le bouton Mode Admin
+function handleAdminModeClick() {
+    if (isAdminMode) {
+        // Désactiver le mode admin
+        disableAdminMode();
+    } else {
+        // Ouvrir la modale pour entrer le code
+        openPinModal();
+    }
+}
+
+// Ouvrir la modale de code PIN
+function openPinModal() {
+    const modal = document.getElementById('pinModal');
+    const pinInput = document.getElementById('pinInput');
+    const pinError = document.getElementById('pinError');
+    
+    modal.classList.remove('hidden');
+    pinInput.value = '';
+    pinError.classList.add('hidden');
+    
+    // Focus sur l'input après l'animation
+    setTimeout(() => {
+        pinInput.focus();
+    }, 300);
+}
+
+// Fermer la modale
+function closePinModal() {
+    const modal = document.getElementById('pinModal');
+    modal.classList.add('hidden');
+}
+
+// Valider le code PIN
+function validatePin() {
+    const pinInput = document.getElementById('pinInput');
+    const pinError = document.getElementById('pinError');
+    const enteredPin = pinInput.value;
+    
+    if (enteredPin === ADMIN_PIN) {
+        // Code correct
+        enableAdminMode();
+        closePinModal();
+        showNotification('✅ Mode Admin activé', 'success');
+    } else {
+        // Code incorrect
+        pinError.classList.remove('hidden');
+        pinInput.value = '';
+        pinInput.focus();
+        
+        // Masquer l'erreur après 3 secondes
+        setTimeout(() => {
+            pinError.classList.add('hidden');
+        }, 3000);
+    }
+}
+
+// Activer le mode admin
+function enableAdminMode() {
+    isAdminMode = true;
+    const adminBtn = document.getElementById('adminModeBtn');
+    const container = document.querySelector('.container');
+    
+    // Changer l'apparence du bouton
+    adminBtn.classList.add('active');
+    adminBtn.textContent = '🔓';
+    adminBtn.title = 'Mode Admin - Cliquer pour désactiver';
+    
+    // Ajouter la classe pour montrer les boutons de suppression
+    container.classList.add('admin-mode-active');
+}
+
+// Désactiver le mode admin
+function disableAdminMode() {
+    isAdminMode = false;
+    const adminBtn = document.getElementById('adminModeBtn');
+    const container = document.querySelector('.container');
+    
+    // Restaurer l'apparence du bouton
+    adminBtn.classList.remove('active');
+    adminBtn.textContent = '🔒';
+    adminBtn.title = 'Mode Admin - Activer pour supprimer';
+    
+    // Retirer la classe pour cacher les boutons de suppression
+    container.classList.remove('admin-mode-active');
+    
+    showNotification('🔒 Mode Admin désactivé', 'info');
+}
+
+// Fonction de notification (simple)
+function showNotification(message, type = 'info') {
+    // Créer la notification
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.textContent = message;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 25px;
+        background: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#2196F3'};
+        color: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        z-index: 2000;
+        animation: slideInRight 0.3s ease;
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Retirer après 3 secondes
+    setTimeout(() => {
+        notification.style.animation = 'slideOutRight 0.3s ease';
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
+    }, 3000);
+}
+
 // Ajouter les animations CSS
 const style = document.createElement('style');
 style.textContent = `
@@ -350,6 +483,28 @@ style.textContent = `
     }
     
     @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+    
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes slideOutRight {
         from {
             transform: translateX(0);
             opacity: 1;

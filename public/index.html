@@ -15,6 +15,9 @@
 
         <!-- Filtres -->
         <div class="filters">
+            <button id="adminModeBtn" class="admin-mode-btn" title="Mode Admin - Activer pour supprimer">
+                🔒
+            </button>
             <button class="filter-btn active" data-filter="all">Tous</button>
             <button class="filter-btn" data-filter="papa">Papa</button>
             <button class="filter-btn" data-filter="maman">Maman</button>
@@ -124,6 +127,28 @@
                     </div>
                 </div>
                 <div class="tasks-list" id="tasks-florent"></div>
+            </div>
+        </div>
+
+        <!-- Modale Code PIN -->
+        <div id="pinModal" class="modal hidden">
+            <div class="modal-content">
+                <h3>🔒 Mode Admin</h3>
+                <p>Entrez le code pour activer le mode suppression</p>
+                <div class="pin-input-container">
+                    <input type="password" 
+                           id="pinInput" 
+                           maxlength="4" 
+                           pattern="[0-9]*" 
+                           inputmode="numeric"
+                           placeholder="••••"
+                           autocomplete="off">
+                </div>
+                <div class="modal-actions">
+                    <button id="cancelPinBtn" class="btn-secondary">Annuler</button>
+                    <button id="validatePinBtn" class="btn-primary">Valider</button>
+                </div>
+                <p id="pinError" class="pin-error hidden">❌ Code incorrect</p>
             </div>
         </div>
     </div>
