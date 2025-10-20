@@ -622,11 +622,12 @@ body {
 }
 
 /* Boutons de suppression cachés par défaut */
-.task-actions .btn-danger {
+.task-actions .btn-delete {
     display: none;
 }
 
-.admin-mode-active .task-actions .btn-danger {
+/* Afficher les boutons de suppression uniquement en mode admin */
+.admin-mode-active .task-actions .btn-delete {
     display: inline-block;
 }
 
