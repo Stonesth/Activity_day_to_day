@@ -172,13 +172,20 @@ function renderPersonTasks(person, tasks) {
     // Mettre à jour les statistiques
     const totalCount = tasks.length;
     const completedCount = tasks.filter(t => t.completed).length;
+    
+    // Calculer les étoiles gagnées (tâches complétées)
     const starsEarned = tasks
         .filter(t => t.completed)
+        .reduce((sum, t) => sum + (t.stars || 0), 0);
+    
+    // Calculer le maximum d'étoiles possibles (toutes les tâches)
+    const starsMax = tasks
         .reduce((sum, t) => sum + (t.stars || 0), 0);
     
     section.querySelector('.total-count').textContent = totalCount;
     section.querySelector('.completed-count').textContent = completedCount;
     section.querySelector('.stars-count').textContent = starsEarned;
+    section.querySelector('.stars-max').textContent = starsMax;
     
     // Vider le conteneur
     container.innerHTML = '';
