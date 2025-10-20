@@ -235,3 +235,16 @@ temp/
 *.swp
 *.swo
 *~
+
+# Node modules
+node_modules/
+package-lock.json
+
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+
+# Cache
+.cache/
