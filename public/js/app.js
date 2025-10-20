@@ -302,6 +302,60 @@ window.deleteTask = async function(taskId) {
     }
 };
 
+// ===== RESET DES TÂCHES =====
+
+// Réinitialiser toutes les tâches d'une personne
+window.resetPersonTasks = async function(person) {
+    // Mapper le nom de la personne pour l'affichage
+    const personNames = {
+        papa: 'Papa',
+        maman: 'Maman',
+        bastien: 'Bastien',
+        florent: 'Florent'
+    };
+    
+    const personName = personNames[person] || person;
+    
+    // Demander confirmation
+    if (!confirm(`Voulez-vous vraiment réinitialiser toutes les tâches de ${personName} ?\n\nToutes les tâches cochées seront décochées.`)) {
+        return;
+    }
+    
+    try {
+        // Récupérer toutes les tâches cochées de cette personne
+        const tasksSnapshot = await getDocs(
+            query(
+                collection(window.db, 'tasks'),
+                where('assignedTo', '==', person),
+                where('completed', '==', true)
+            )
+        );
+        
+        // Décocher toutes les tâches en batch
+        const batch = [];
+        tasksSnapshot.forEach((taskDoc) => {
+            batch.push(
+                updateDoc(doc(window.db, 'tasks', taskDoc.id), {
+                    completed: false,
+                    updatedAt: serverTimestamp()
+                })
+            );
+        });
+        
+        if (batch.length === 0) {
+            showNotification(`${personName} n'a aucune tâche cochée`, 'info');
+            return;
+        }
+        
+        await Promise.all(batch);
+        
+        showNotification(`✅ ${batch.length} tâche(s) de ${personName} réinitialisée(s)`, 'success');
+    } catch (error) {
+        console.error('Erreur lors de la réinitialisation:', error);
+        showNotification('Erreur lors de la réinitialisation', 'error');
+    }
+};
+
 // ===== ÉDITION DE TÂCHE =====
 
 // Ouvrir la modale d'édition et charger les données de la tâche
