@@ -540,21 +540,20 @@ function updateProgressBar(section, normalStarsEarned, normalStarsMax, bonusStar
     
     // Calculer le pourcentage des tâches normales (0-75%)
     // On calcule comme si le max était réduit de la tolérance
+    // Cela permet d'atteindre 75% plus facilement, et de dépasser si on fait 100%
     const adjustedNormalMax = Math.max(1, normalStarsMax - TOLERANCE_STARS);
-    let normalPercentage = normalStarsMax > 0 
+    const normalPercentage = normalStarsMax > 0 
         ? (normalStarsEarned / adjustedNormalMax) * 75 
         : 0;
-    
-    // Cap à 75% maximum pour les tâches normales
-    normalPercentage = Math.min(normalPercentage, 75);
     
     // Calculer le pourcentage des tâches bonus (0-25%)
     const bonusPercentage = bonusStarsMax > 0 
         ? (bonusStarsEarned / bonusStarsMax) * 25 
         : 0;
     
-    // Total : normales (0-75%) + bonus (0-25%) = 0-100%
-    const percentage = Math.round(normalPercentage + bonusPercentage);
+    // Total : normales + bonus, avec cap à 100%
+    const totalPercentage = normalPercentage + bonusPercentage;
+    const percentage = Math.min(100, Math.round(totalPercentage));
     
     // Mettre à jour la barre de progression
     if (progressFill) {
