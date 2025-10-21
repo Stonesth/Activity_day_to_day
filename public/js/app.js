@@ -535,10 +535,18 @@ function updateProgressBar(section, normalStarsEarned, normalStarsMax, bonusStar
     const progressValue = section.querySelector('.progress-value');
     const milestones = section.querySelectorAll('.milestone');
     
+    // Marge de tolérance : 3 étoiles manquantes permettent quand même d'atteindre 75%
+    const TOLERANCE_STARS = 3;
+    
     // Calculer le pourcentage des tâches normales (0-75%)
-    const normalPercentage = normalStarsMax > 0 
-        ? (normalStarsEarned / normalStarsMax) * 75 
+    // On calcule comme si le max était réduit de la tolérance
+    const adjustedNormalMax = Math.max(1, normalStarsMax - TOLERANCE_STARS);
+    let normalPercentage = normalStarsMax > 0 
+        ? (normalStarsEarned / adjustedNormalMax) * 75 
         : 0;
+    
+    // Cap à 75% maximum pour les tâches normales
+    normalPercentage = Math.min(normalPercentage, 75);
     
     // Calculer le pourcentage des tâches bonus (0-25%)
     const bonusPercentage = bonusStarsMax > 0 
