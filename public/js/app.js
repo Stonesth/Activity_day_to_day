@@ -538,6 +538,11 @@ function updateProgressBar(section, normalStarsEarned, normalStarsMax, bonusStar
     // Marge de tolérance : 3 étoiles manquantes permettent quand même d'atteindre 75%
     const TOLERANCE_STARS = 3;
     
+    // Debug : afficher les valeurs
+    console.log('=== DEBUG PROGRESSION ===');
+    console.log('Normales:', normalStarsEarned, '/', normalStarsMax);
+    console.log('Bonus:', bonusStarsEarned, '/', bonusStarsMax);
+    
     // Calculer le pourcentage des tâches normales (0-75%)
     // On calcule comme si le max était réduit de la tolérance
     // Cela permet d'atteindre 75% plus facilement, et de dépasser si on fait 100%
@@ -546,14 +551,23 @@ function updateProgressBar(section, normalStarsEarned, normalStarsMax, bonusStar
         ? (normalStarsEarned / adjustedNormalMax) * 75 
         : 0;
     
+    console.log('Adjusted max:', adjustedNormalMax);
+    console.log('Normal %:', normalPercentage);
+    
     // Calculer le pourcentage des tâches bonus (0-25%)
     const bonusPercentage = bonusStarsMax > 0 
         ? (bonusStarsEarned / bonusStarsMax) * 25 
         : 0;
     
+    console.log('Bonus %:', bonusPercentage);
+    
     // Total : normales + bonus, avec cap à 100%
     const totalPercentage = normalPercentage + bonusPercentage;
     const percentage = Math.min(100, Math.round(totalPercentage));
+    
+    console.log('Total % (avant arrondi):', totalPercentage);
+    console.log('Total % (final):', percentage);
+    console.log('======================');
     
     // Mettre à jour la barre de progression
     if (progressFill) {
