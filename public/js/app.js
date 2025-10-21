@@ -103,6 +103,7 @@ async function handleTaskSubmit(e) {
         assignedTo: assignedTo,
         stars: parseInt(starsElement.value) || 3,
         category: document.getElementById('category').value,
+        isBonus: document.getElementById('isBonus').checked,
         completed: false,
         order: nextOrder,
         createdAt: serverTimestamp(),
@@ -190,22 +191,35 @@ function renderPersonTasks(person, tasks) {
     const totalCount = tasks.length;
     const completedCount = tasks.filter(t => t.completed).length;
     
-    // Calculer les étoiles gagnées (tâches complétées)
-    const starsEarned = tasks
+    // Séparer les tâches normales et bonus
+    const normalTasks = tasks.filter(t => !t.isBonus);
+    const bonusTasks = tasks.filter(t => t.isBonus);
+    
+    // Calculer les étoiles pour les tâches normales
+    const normalStarsEarned = normalTasks
         .filter(t => t.completed)
         .reduce((sum, t) => sum + (t.stars || 0), 0);
-    
-    // Calculer le maximum d'étoiles possibles (toutes les tâches)
-    const starsMax = tasks
+    const normalStarsMax = normalTasks
         .reduce((sum, t) => sum + (t.stars || 0), 0);
+    
+    // Calculer les étoiles pour les tâches bonus
+    const bonusStarsEarned = bonusTasks
+        .filter(t => t.completed)
+        .reduce((sum, t) => sum + (t.stars || 0), 0);
+    const bonusStarsMax = bonusTasks
+        .reduce((sum, t) => sum + (t.stars || 0), 0);
+    
+    // Total des étoiles (pour affichage)
+    const starsEarned = normalStarsEarned + bonusStarsEarned;
+    const starsMax = normalStarsMax + bonusStarsMax;
     
     section.querySelector('.total-count').textContent = totalCount;
     section.querySelector('.completed-count').textContent = completedCount;
     section.querySelector('.stars-count').textContent = starsEarned;
     section.querySelector('.stars-max').textContent = starsMax;
     
-    // Calculer et mettre à jour la barre de progression
-    updateProgressBar(section, starsEarned, starsMax);
+    // Calculer et mettre à jour la barre de progression avec système 75%/25%
+    updateProgressBar(section, normalStarsEarned, normalStarsMax, bonusStarsEarned, bonusStarsMax);
     
     // Vider le conteneur
     container.innerHTML = '';
@@ -238,7 +252,10 @@ function createTaskElement(task, person) {
             <div class="checkbox ${task.completed ? 'checked' : ''}" 
                  onclick="toggleTaskCompletion('${task.id}', ${!task.completed})">
             </div>
-            <div class="task-title">${escapeHtml(task.title)}</div>
+            <div class="task-title">
+                ${escapeHtml(task.title)}
+                ${task.isBonus ? '<span class="bonus-badge">🎁 BONUS</span>' : ''}
+            </div>
             <span class="task-stars">
                 ${starsDisplay}
             </span>
@@ -513,13 +530,23 @@ function showNotification(message, type = 'info') {
 }
 
 // Mettre à jour la barre de progression
-function updateProgressBar(section, starsEarned, starsMax) {
+function updateProgressBar(section, normalStarsEarned, normalStarsMax, bonusStarsEarned, bonusStarsMax) {
     const progressFill = section.querySelector('.progress-fill');
     const progressValue = section.querySelector('.progress-value');
     const milestones = section.querySelectorAll('.milestone');
     
-    // Calculer le pourcentage (éviter division par zéro)
-    const percentage = starsMax > 0 ? Math.round((starsEarned / starsMax) * 100) : 0;
+    // Calculer le pourcentage des tâches normales (0-75%)
+    const normalPercentage = normalStarsMax > 0 
+        ? (normalStarsEarned / normalStarsMax) * 75 
+        : 0;
+    
+    // Calculer le pourcentage des tâches bonus (0-25%)
+    const bonusPercentage = bonusStarsMax > 0 
+        ? (bonusStarsEarned / bonusStarsMax) * 25 
+        : 0;
+    
+    // Total : normales (0-75%) + bonus (0-25%) = 0-100%
+    const percentage = Math.round(normalPercentage + bonusPercentage);
     
     // Mettre à jour la barre de progression
     if (progressFill) {
@@ -532,7 +559,7 @@ function updateProgressBar(section, starsEarned, starsMax) {
         progressValue.textContent = percentage;
     }
     
-    // Mettre à jour les paliers (25%, 50%, 75%, 90%)
+    // Mettre à jour les paliers (25%, 50%, 75%, 100%)
     milestones.forEach(milestone => {
         const milestoneValue = parseInt(milestone.getAttribute('data-milestone'));
         
