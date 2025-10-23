@@ -535,14 +535,20 @@ function updateProgressBar(section, normalStarsEarned, normalStarsMax, bonusStar
     const progressValue = section.querySelector('.progress-value');
     const milestones = section.querySelectorAll('.milestone');
     
-    // Calculer le pourcentage global : toutes les étoiles comptent pareil
-    // Bonus et normales ont la même pondération
-    const totalStarsEarned = normalStarsEarned + bonusStarsEarned;
-    const totalStarsMax = normalStarsMax + bonusStarsMax;
+    // Système de rattrapage :
+    // - Le max = étoiles normales seulement
+    // - Les bonus compensent les normales manquées
+    // - On ne peut pas dépasser 100% même avec les bonus
     
-    // Calcul simple : (étoiles gagnées / étoiles max) × 100
+    const totalStarsEarned = normalStarsEarned + bonusStarsEarned;
+    const totalStarsMax = normalStarsMax; // Max = normales seulement !
+    
+    // Cap : on ne peut pas gagner plus que le max des normales
+    const cappedStarsEarned = Math.min(totalStarsEarned, totalStarsMax);
+    
+    // Calcul : (normales + bonus jusqu'au cap) / max normales × 100
     const percentage = totalStarsMax > 0 
-        ? Math.round((totalStarsEarned / totalStarsMax) * 100)
+        ? Math.round((cappedStarsEarned / totalStarsMax) * 100)
         : 0;
     
     // Mettre à jour la barre de progression
