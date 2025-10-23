@@ -535,21 +535,26 @@ function updateProgressBar(section, normalStarsEarned, normalStarsMax, bonusStar
     const progressValue = section.querySelector('.progress-value');
     const milestones = section.querySelectorAll('.milestone');
     
-    // Système de rattrapage :
-    // - Le max = étoiles normales seulement
-    // - Les bonus compensent les normales manquées
-    // - On ne peut pas dépasser 100% même avec les bonus
+    // Système mixte :
+    // - Tâches normales : 0-80% de la progression
+    // - Tâches bonus : 80-100% (les 20% restants)
+    // - Les bonus permettent d'atteindre 100% si les normales sont faites
     
-    const totalStarsEarned = normalStarsEarned + bonusStarsEarned;
-    const totalStarsMax = normalStarsMax; // Max = normales seulement !
+    const NORMAL_MAX_PERCENT = 80; // Les normales vont jusqu'à 80%
+    const BONUS_MAX_PERCENT = 20;  // Les bonus donnent les 20% restants
     
-    // Cap : on ne peut pas gagner plus que le max des normales
-    const cappedStarsEarned = Math.min(totalStarsEarned, totalStarsMax);
-    
-    // Calcul : (normales + bonus jusqu'au cap) / max normales × 100
-    const percentage = totalStarsMax > 0 
-        ? Math.round((cappedStarsEarned / totalStarsMax) * 100)
+    // Calculer le pourcentage des tâches normales (0-80%)
+    const normalPercentage = normalStarsMax > 0 
+        ? (normalStarsEarned / normalStarsMax) * NORMAL_MAX_PERCENT 
         : 0;
+    
+    // Calculer le pourcentage des tâches bonus (0-20%)
+    const bonusPercentage = bonusStarsMax > 0 
+        ? (bonusStarsEarned / bonusStarsMax) * BONUS_MAX_PERCENT 
+        : 0;
+    
+    // Total : normales (0-80%) + bonus (0-20%) = 0-100%
+    const percentage = Math.round(normalPercentage + bonusPercentage);
     
     // Mettre à jour la barre de progression
     if (progressFill) {
