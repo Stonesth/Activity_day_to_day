@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tableau des Tâches Familiales - Dynamique</title>
-    <link rel="stylesheet" href="css/styles.css?v=2.4">
+    <link rel="stylesheet" href="css/styles.css?v=2.5">
 </head>
 <body>
     <div class="container">
@@ -82,7 +82,17 @@
                         🎁 Tâche Bonus
                     </label>
                     <small style="color: #666; font-size: 0.9em; margin-top: 5px; display: block;">
-                        Les tâches bonus comptent pour les 25% restants (75-100%) et valent généralement plus d'étoiles !
+                        Les tâches bonus comptent pour les 20% restants (80-100%)
+                    </small>
+                </div>
+                
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="isPenalty">
+                        ⛔ Pénalité
+                    </label>
+                    <small style="color: #f44336; font-size: 0.9em; margin-top: 5px; display: block;">
+                        Les pénalités donnent des étoiles NÉGATIVES qui se soustraient du total
                     </small>
                 </div>
                 
@@ -396,6 +406,6 @@
         window.db = db;
     </script>
     
-    <script type="module" src="js/app.js?v=2.4"></script>
+    <script type="module" src="js/app.js?v=2.5"></script>
 </body>
 </html>

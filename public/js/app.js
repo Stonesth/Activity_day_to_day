@@ -104,6 +104,7 @@ async function handleTaskSubmit(e) {
         stars: parseInt(starsElement.value) || 3,
         category: document.getElementById('category').value,
         isBonus: document.getElementById('isBonus').checked,
+        isPenalty: document.getElementById('isPenalty').checked,
         completed: false,
         order: nextOrder,
         createdAt: serverTimestamp(),
@@ -189,11 +190,12 @@ function renderPersonTasks(person, tasks) {
     
     // Mettre à jour les statistiques
     const totalCount = tasks.length;
-    const completedCount = tasks.filter(t => t.completed).length;
+    const completedCount = tasks.filter(t => t.completed && !t.isPenalty).length;
     
-    // Séparer les tâches normales et bonus
-    const normalTasks = tasks.filter(t => !t.isBonus);
-    const bonusTasks = tasks.filter(t => t.isBonus);
+    // Séparer les tâches normales, bonus et pénalités
+    const normalTasks = tasks.filter(t => !t.isBonus && !t.isPenalty);
+    const bonusTasks = tasks.filter(t => t.isBonus && !t.isPenalty);
+    const penaltyTasks = tasks.filter(t => t.isPenalty);
     
     // Calculer les étoiles pour les tâches normales
     const normalStarsEarned = normalTasks
@@ -209,8 +211,13 @@ function renderPersonTasks(person, tasks) {
     const bonusStarsMax = bonusTasks
         .reduce((sum, t) => sum + (t.stars || 0), 0);
     
-    // Total des étoiles (pour affichage)
-    const starsEarned = normalStarsEarned + bonusStarsEarned;
+    // Calculer les pénalités (étoiles négatives cochées)
+    const penaltyStars = penaltyTasks
+        .filter(t => t.completed)
+        .reduce((sum, t) => sum + (t.stars || 0), 0);
+    
+    // Total des étoiles (pour affichage) : positives - pénalités
+    const starsEarned = Math.max(0, normalStarsEarned + bonusStarsEarned - penaltyStars);
     const starsMax = normalStarsMax + bonusStarsMax;
     
     section.querySelector('.total-count').textContent = totalCount;
@@ -218,8 +225,8 @@ function renderPersonTasks(person, tasks) {
     section.querySelector('.stars-count').textContent = starsEarned;
     section.querySelector('.stars-max').textContent = starsMax;
     
-    // Calculer et mettre à jour la barre de progression avec système 75%/25%
-    updateProgressBar(section, normalStarsEarned, normalStarsMax, bonusStarsEarned, bonusStarsMax);
+    // Calculer et mettre à jour la barre de progression avec système 80/20 et pénalités
+    updateProgressBar(section, normalStarsEarned, normalStarsMax, bonusStarsEarned, bonusStarsMax, penaltyStars);
     
     // Vider le conteneur
     container.innerHTML = '';
@@ -244,7 +251,14 @@ function createTaskElement(task, person) {
     div.dataset.assignedTo = task.assignedTo;
     div.draggable = true;
     
-    const starsDisplay = '⭐'.repeat(task.stars || 1);
+    const starsDisplay = task.isPenalty 
+        ? `-${task.stars || 1}⭐` 
+        : '⭐'.repeat(task.stars || 1);
+    
+    // Ajouter une classe spéciale pour les pénalités
+    if (task.isPenalty) {
+        div.classList.add('penalty-item');
+    }
     
     div.innerHTML = `
         <div class="task-header">
@@ -255,8 +269,9 @@ function createTaskElement(task, person) {
             <div class="task-title">
                 ${escapeHtml(task.title)}
                 ${task.isBonus ? '<span class="bonus-badge">🎁 BONUS</span>' : ''}
+                ${task.isPenalty ? '<span class="penalty-badge">⛔ PÉNALITÉ</span>' : ''}
             </div>
-            <span class="task-stars">
+            <span class="task-stars ${task.isPenalty ? 'penalty-stars' : ''}">
                 ${starsDisplay}
             </span>
         </div>
@@ -530,15 +545,15 @@ function showNotification(message, type = 'info') {
 }
 
 // Mettre à jour la barre de progression
-function updateProgressBar(section, normalStarsEarned, normalStarsMax, bonusStarsEarned, bonusStarsMax) {
+function updateProgressBar(section, normalStarsEarned, normalStarsMax, bonusStarsEarned, bonusStarsMax, penaltyStars = 0) {
     const progressFill = section.querySelector('.progress-fill');
     const progressValue = section.querySelector('.progress-value');
     const milestones = section.querySelectorAll('.milestone');
     
-    // Système mixte :
+    // Système mixte avec pénalités :
     // - Tâches normales : 0-80% de la progression
     // - Tâches bonus : 80-100% (les 20% restants)
-    // - Les bonus permettent d'atteindre 100% si les normales sont faites
+    // - Pénalités : soustraites du total (peuvent faire baisser la barre)
     
     const NORMAL_MAX_PERCENT = 80; // Les normales vont jusqu'à 80%
     const BONUS_MAX_PERCENT = 20;  // Les bonus donnent les 20% restants
@@ -553,8 +568,14 @@ function updateProgressBar(section, normalStarsEarned, normalStarsMax, bonusStar
         ? (bonusStarsEarned / bonusStarsMax) * BONUS_MAX_PERCENT 
         : 0;
     
-    // Total : normales (0-80%) + bonus (0-20%) = 0-100%
-    const percentage = Math.round(normalPercentage + bonusPercentage);
+    // Calculer l'impact des pénalités en pourcentage
+    const totalStarsMax = normalStarsMax + bonusStarsMax;
+    const penaltyPercentage = totalStarsMax > 0 
+        ? (penaltyStars / totalStarsMax) * 100 
+        : 0;
+    
+    // Total : normales + bonus - pénalités (ne peut pas descendre en dessous de 0%)
+    const percentage = Math.max(0, Math.round(normalPercentage + bonusPercentage - penaltyPercentage));
     
     // Mettre à jour la barre de progression
     if (progressFill) {
