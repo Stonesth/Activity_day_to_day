@@ -535,39 +535,15 @@ function updateProgressBar(section, normalStarsEarned, normalStarsMax, bonusStar
     const progressValue = section.querySelector('.progress-value');
     const milestones = section.querySelectorAll('.milestone');
     
-    // Marge de tolérance : 3 étoiles manquantes permettent quand même d'atteindre 75%
-    const TOLERANCE_STARS = 3;
+    // Calculer le pourcentage global : toutes les étoiles comptent pareil
+    // Bonus et normales ont la même pondération
+    const totalStarsEarned = normalStarsEarned + bonusStarsEarned;
+    const totalStarsMax = normalStarsMax + bonusStarsMax;
     
-    // Debug : afficher les valeurs
-    console.log('=== DEBUG PROGRESSION ===');
-    console.log('Normales:', normalStarsEarned, '/', normalStarsMax);
-    console.log('Bonus:', bonusStarsEarned, '/', bonusStarsMax);
-    
-    // Calculer le pourcentage des tâches normales (0-75%)
-    // On calcule comme si le max était réduit de la tolérance
-    // Cela permet d'atteindre 75% plus facilement, et de dépasser si on fait 100%
-    const adjustedNormalMax = Math.max(1, normalStarsMax - TOLERANCE_STARS);
-    const normalPercentage = normalStarsMax > 0 
-        ? (normalStarsEarned / adjustedNormalMax) * 75 
+    // Calcul simple : (étoiles gagnées / étoiles max) × 100
+    const percentage = totalStarsMax > 0 
+        ? Math.round((totalStarsEarned / totalStarsMax) * 100)
         : 0;
-    
-    console.log('Adjusted max:', adjustedNormalMax);
-    console.log('Normal %:', normalPercentage);
-    
-    // Calculer le pourcentage des tâches bonus (0-25%)
-    const bonusPercentage = bonusStarsMax > 0 
-        ? (bonusStarsEarned / bonusStarsMax) * 25 
-        : 0;
-    
-    console.log('Bonus %:', bonusPercentage);
-    
-    // Total : normales + bonus, avec cap à 100%
-    const totalPercentage = normalPercentage + bonusPercentage;
-    const percentage = Math.min(100, Math.round(totalPercentage));
-    
-    console.log('Total % (avant arrondi):', totalPercentage);
-    console.log('Total % (final):', percentage);
-    console.log('======================');
     
     // Mettre à jour la barre de progression
     if (progressFill) {
