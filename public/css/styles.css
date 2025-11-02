@@ -316,16 +316,24 @@ body {
     transition: all 0.3s ease;
 }
 
-.stars-max-input:hover {
+.stars-max-input:hover:not(:disabled) {
     background: rgba(255, 255, 255, 0.3);
     border-color: rgba(255, 215, 0, 0.5);
 }
 
-.stars-max-input:focus {
+.stars-max-input:focus:not(:disabled) {
     outline: none;
     background: rgba(255, 255, 255, 0.4);
     border-color: #FFD700;
     box-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+}
+
+/* Input désactivé (hors mode admin) */
+.stars-max-input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 215, 0, 0.2);
 }
 
 /* Petit texte explicatif */
