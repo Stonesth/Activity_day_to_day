@@ -593,8 +593,8 @@ function updateProgressBar(section, starsEarned, starsMax) {
         0: '',
         25: '📺 5min',
         50: '📺 10min',
-        75: '📺 15min + 🎮 15min',
-        100: '📺 20min + 🎮 20min'
+        75: '📺 15min ou 🎮 15min',
+        100: '📺 20min ou 🎮 20min'
     };
     
     // Trouver le palier actuel atteint

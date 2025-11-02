@@ -241,7 +241,7 @@ Ajouter un champ `isBonus` :
 50% : 📺 10min (Tâches normales)
 75% : 📺 15min + 🎮 15min (Tâches normales complètes !)
 ────────────────────────────────────
-100%: 📺 20min + 🎮 20min (Avec tâches bonus ! 🎁)
+100%: 📺 20min ou 🎮 20min (Avec tâches bonus ! 🎁)
 ```
 
 ### 💡 Variantes Possibles
