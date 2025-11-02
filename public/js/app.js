@@ -232,8 +232,12 @@ function renderPersonTasks(person, tasks) {
     const maxInput = section.querySelector('.stars-max-input');
     if (maxInput) {
         maxInput.value = starsMax;
-        // Désactiver par défaut, activer seulement en mode admin
-        maxInput.disabled = !isAdminMode;
+    }
+    
+    // Mettre à jour aussi le span d'affichage
+    const maxDisplay = section.querySelector('.stars-max-display');
+    if (maxDisplay) {
+        maxDisplay.textContent = starsMax;
     }
     
     // Calculer et mettre à jour la barre de progression avec système manuel simple
@@ -817,13 +821,8 @@ function enableAdminMode() {
     adminBtn.textContent = '🔓';
     adminBtn.title = 'Mode Admin - Cliquer pour désactiver';
     
-    // Ajouter la classe pour montrer les boutons de suppression
+    // Ajouter la classe pour montrer les boutons de suppression et les inputs
     container.classList.add('admin-mode-active');
-    
-    // Activer les inputs du max d'étoiles
-    document.querySelectorAll('.stars-max-input').forEach(input => {
-        input.disabled = false;
-    });
 }
 
 // Désactiver le mode admin
@@ -837,13 +836,8 @@ function disableAdminMode() {
     adminBtn.textContent = '🔒';
     adminBtn.title = 'Mode Admin - Activer pour supprimer';
     
-    // Retirer la classe pour cacher les boutons de suppression
+    // Retirer la classe pour cacher les boutons de suppression et les inputs
     container.classList.remove('admin-mode-active');
-    
-    // Désactiver les inputs du max d'étoiles
-    document.querySelectorAll('.stars-max-input').forEach(input => {
-        input.disabled = true;
-    });
     
     showNotification('🔒 Mode Admin désactivé', 'info');
 }

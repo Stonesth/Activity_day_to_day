@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tableau des Tâches Familiales - Dynamique</title>
-    <link rel="stylesheet" href="css/styles.css?v=3.6">
+    <link rel="stylesheet" href="css/styles.css?v=3.7">
 </head>
 <body>
     <div class="container">
@@ -123,7 +123,7 @@
                     </div>
                     <div class="stats">
                         <div class="stars-earned">
-                            ⭐ <span class="stars-count">0</span>/<input type="number" class="stars-max-input" value="0" min="0" max="999" disabled onchange="updatePersonMaxStars('papa', this.value)">
+                            ⭐ <span class="stars-count">0</span>/<span class="stars-max-display">0</span><input type="number" class="stars-max-input" value="0" min="0" max="999" onchange="updatePersonMaxStars('papa', this.value)">
                         </div>
                         <div class="tasks-count"><span class="completed-count">0</span>/<span class="total-count">0</span> tâches</div>
                     </div>
@@ -185,7 +185,7 @@
                     </div>
                     <div class="stats">
                         <div class="stars-earned">
-                            ⭐ <span class="stars-count">0</span>/<input type="number" class="stars-max-input" value="0" min="0" max="999" disabled onchange="updatePersonMaxStars('maman', this.value)">
+                            ⭐ <span class="stars-count">0</span>/<span class="stars-max-display">0</span><input type="number" class="stars-max-input" value="0" min="0" max="999" onchange="updatePersonMaxStars('maman', this.value)">
                         </div>
                         <div class="tasks-count"><span class="completed-count">0</span>/<span class="total-count">0</span> tâches</div>
                     </div>
@@ -247,7 +247,7 @@
                     </div>
                     <div class="stats">
                         <div class="stars-earned">
-                            ⭐ <span class="stars-count">0</span>/<input type="number" class="stars-max-input" value="0" min="0" max="999" disabled onchange="updatePersonMaxStars('bastien', this.value)">
+                            ⭐ <span class="stars-count">0</span>/<span class="stars-max-display">0</span><input type="number" class="stars-max-input" value="0" min="0" max="999" onchange="updatePersonMaxStars('bastien', this.value)">
                         </div>
                         <div class="tasks-count"><span class="completed-count">0</span>/<span class="total-count">0</span> tâches</div>
                     </div>
@@ -309,7 +309,7 @@
                     </div>
                     <div class="stats">
                         <div class="stars-earned">
-                            ⭐ <span class="stars-count">0</span>/<input type="number" class="stars-max-input" value="0" min="0" max="999" disabled onchange="updatePersonMaxStars('florent', this.value)">
+                            ⭐ <span class="stars-count">0</span>/<span class="stars-max-display">0</span><input type="number" class="stars-max-input" value="0" min="0" max="999" onchange="updatePersonMaxStars('florent', this.value)">
                         </div>
                         <div class="tasks-count"><span class="completed-count">0</span>/<span class="total-count">0</span> tâches</div>
                     </div>
@@ -458,6 +458,6 @@
         window.db = db;
     </script>
     
-    <script type="module" src="js/app.js?v=3.6"></script>
+    <script type="module" src="js/app.js?v=3.7"></script>
 </body>
 </html>
