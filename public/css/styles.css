@@ -527,11 +527,18 @@ body {
     font-weight: bold;
 }
 
+/* Conteneur du titre et étoiles */
+.task-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
 .task-title {
     font-size: 1.1rem;
     font-weight: 600;
     color: #333;
-    flex: 1;
 }
 
 .task-item.completed .task-title {
@@ -541,7 +548,7 @@ body {
 .task-stars {
     padding: 4px 12px;
     border-radius: 20px;
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 600;
     background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
     color: white;
@@ -549,6 +556,7 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 3px;
+    align-self: flex-start;
 }
 
 .task-description {
@@ -727,6 +735,13 @@ body {
 
 .milestone.unlocked .milestone-reward {
     color: #4CAF50;
+}
+
+/* Masquer les paliers dépassés */
+.milestone.passed .milestone-label {
+    opacity: 0 !important;
+    visibility: hidden;
+    pointer-events: none;
 }
 
 /* Pourcentage de progression */

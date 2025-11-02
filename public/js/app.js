@@ -277,14 +277,16 @@ function createTaskElement(task, person) {
             <div class="checkbox ${task.completed ? 'checked' : ''}" 
                  onclick="toggleTaskCompletion('${task.id}', ${!task.completed})">
             </div>
-            <div class="task-title">
-                ${escapeHtml(task.title)}
-                ${task.isBonus ? '<span class="bonus-badge">🎁 BONUS</span>' : ''}
-                ${task.isPenalty ? '<span class="penalty-badge">⛔ PÉNALITÉ</span>' : ''}
+            <div class="task-content">
+                <div class="task-title">
+                    ${escapeHtml(task.title)}
+                    ${task.isBonus ? '<span class="bonus-badge">🎁 BONUS</span>' : ''}
+                    ${task.isPenalty ? '<span class="penalty-badge">⛔ PÉNALITÉ</span>' : ''}
+                </div>
+                <span class="task-stars ${task.isPenalty ? 'penalty-stars' : ''}">
+                    ${starsDisplay}
+                </span>
             </div>
-            <span class="task-stars ${task.isPenalty ? 'penalty-stars' : ''}">
-                ${starsDisplay}
-            </span>
         </div>
         ${task.description ? `
             <div class="task-description">
@@ -583,13 +585,21 @@ function updateProgressBar(section, starsEarned, starsMax) {
     }
     
     // Mettre à jour les paliers (25%, 50%, 75%, 100%)
+    // Masquer les paliers dépassés (ceux qui sont complètement atteints)
     milestones.forEach(milestone => {
         const milestoneValue = parseInt(milestone.getAttribute('data-milestone'));
         
         if (percentage >= milestoneValue) {
             milestone.classList.add('unlocked');
+            // Cacher les paliers dépassés (sauf le 100%)
+            if (percentage > milestoneValue && milestoneValue < 100) {
+                milestone.classList.add('passed');
+            } else {
+                milestone.classList.remove('passed');
+            }
         } else {
             milestone.classList.remove('unlocked');
+            milestone.classList.remove('passed');
         }
     });
 }
