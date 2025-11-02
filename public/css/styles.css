@@ -701,30 +701,8 @@ body {
 }
 
 .milestone-label {
-    position: absolute;
-    top: -50px;
-    left: 50%;
-    transform: translateX(-50%);
-    white-space: nowrap;
-    background: white;
-    padding: 8px 12px;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    font-size: 0.85rem;
-    line-height: 1.4;
-    opacity: 0;
-    transition: all 0.3s ease;
-    pointer-events: none;
-    z-index: 110;
-}
-
-.milestone:hover .milestone-label {
-    opacity: 1;
-    top: -55px;
-}
-
-.milestone.unlocked .milestone-label {
-    opacity: 1;
+    /* Masqué car la récompense est maintenant affichée à côté du pourcentage */
+    display: none;
 }
 
 .milestone-reward {
