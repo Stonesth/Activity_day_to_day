@@ -218,15 +218,24 @@ function renderPersonTasks(person, tasks) {
     
     // Total des étoiles (pour affichage) : positives - pénalités
     const starsEarned = Math.max(0, normalStarsEarned + bonusStarsEarned - penaltyStars);
-    const starsMax = normalStarsMax + bonusStarsMax;
+    
+    // Max manuel : récupérer depuis localStorage ou utiliser le calculé comme défaut
+    const manualMax = getPersonMaxStars(person);
+    const calculatedMax = normalStarsMax + bonusStarsMax;
+    const starsMax = manualMax !== null ? manualMax : calculatedMax;
     
     section.querySelector('.total-count').textContent = totalCount;
     section.querySelector('.completed-count').textContent = completedCount;
     section.querySelector('.stars-count').textContent = starsEarned;
-    section.querySelector('.stars-max').textContent = starsMax;
     
-    // Calculer et mettre à jour la barre de progression avec système 80/20 et pénalités
-    updateProgressBar(section, normalStarsEarned, normalStarsMax, bonusStarsEarned, bonusStarsMax, penaltyStars);
+    // Mettre à jour le champ input avec le max (manuel ou calculé)
+    const maxInput = section.querySelector('.stars-max-input');
+    if (maxInput) {
+        maxInput.value = starsMax;
+    }
+    
+    // Calculer et mettre à jour la barre de progression avec système manuel simple
+    updateProgressBar(section, starsEarned, starsMax);
     
     // Vider le conteneur
     container.innerHTML = '';
@@ -545,37 +554,20 @@ function showNotification(message, type = 'info') {
 }
 
 // Mettre à jour la barre de progression
-function updateProgressBar(section, normalStarsEarned, normalStarsMax, bonusStarsEarned, bonusStarsMax, penaltyStars = 0) {
+function updateProgressBar(section, starsEarned, starsMax) {
     const progressFill = section.querySelector('.progress-fill');
     const progressValue = section.querySelector('.progress-value');
     const milestones = section.querySelectorAll('.milestone');
     
-    // Système mixte avec pénalités :
-    // - Tâches normales : 0-80% de la progression
-    // - Tâches bonus : 80-100% (les 20% restants)
-    // - Pénalités : soustraites du total (peuvent faire baisser la barre)
+    // Système MANUEL SIMPLE :
+    // - Max défini manuellement (ou calculé automatiquement par défaut)
+    // - Toutes les étoiles (normales + bonus) comptent pareil
+    // - Pénalités déjà soustraites dans starsEarned
+    // - Calcul : (étoiles gagnées / max) × 100%
     
-    const NORMAL_MAX_PERCENT = 80; // Les normales vont jusqu'à 80%
-    const BONUS_MAX_PERCENT = 20;  // Les bonus donnent les 20% restants
-    
-    // Calculer le pourcentage des tâches normales (0-80%)
-    const normalPercentage = normalStarsMax > 0 
-        ? (normalStarsEarned / normalStarsMax) * NORMAL_MAX_PERCENT 
+    const percentage = starsMax > 0 
+        ? Math.round((starsEarned / starsMax) * 100)
         : 0;
-    
-    // Calculer le pourcentage des tâches bonus (0-20%)
-    const bonusPercentage = bonusStarsMax > 0 
-        ? (bonusStarsEarned / bonusStarsMax) * BONUS_MAX_PERCENT 
-        : 0;
-    
-    // Calculer l'impact des pénalités en pourcentage
-    const totalStarsMax = normalStarsMax + bonusStarsMax;
-    const penaltyPercentage = totalStarsMax > 0 
-        ? (penaltyStars / totalStarsMax) * 100 
-        : 0;
-    
-    // Total : normales + bonus - pénalités (ne peut pas descendre en dessous de 0%)
-    const percentage = Math.max(0, Math.round(normalPercentage + bonusPercentage - penaltyPercentage));
     
     // Mettre à jour la barre de progression
     if (progressFill) {
@@ -860,3 +852,20 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+// Fonction pour sauvegarder le max manuel d'étoiles d'une personne
+window.updatePersonMaxStars = function(person, maxValue) {
+    const max = parseInt(maxValue) || 0;
+    localStorage.setItem(`maxStars_${person}`, max);
+    
+    // Recharger les tâches pour mettre à jour l'affichage
+    loadTasks();
+    
+    showNotification(`✅ Max d'étoiles pour ${person} : ${max}⭐`);
+};
+
+// Fonction pour récupérer le max manuel d'étoiles d'une personne
+function getPersonMaxStars(person) {
+    const saved = localStorage.getItem(`maxStars_${person}`);
+    return saved !== null ? parseInt(saved) : null;
+};

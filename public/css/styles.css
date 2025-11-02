@@ -302,6 +302,42 @@ body {
     font-size: 1.8rem;
 }
 
+/* Input pour le max d'étoiles manuel */
+.stars-max-input {
+    width: 60px;
+    font-size: 1.6rem;
+    font-weight: bold;
+    color: #FFD700;
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 215, 0, 0.3);
+    border-radius: 8px;
+    padding: 4px 8px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.stars-max-input:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 215, 0, 0.5);
+}
+
+.stars-max-input:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.4);
+    border-color: #FFD700;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+}
+
+/* Petit texte explicatif */
+.max-hint {
+    display: block;
+    font-size: 0.7rem;
+    color: #999;
+    font-weight: normal;
+    margin-top: 2px;
+    font-style: italic;
+}
+
 .tasks-count {
     font-size: 0.9rem;
     color: #666;
