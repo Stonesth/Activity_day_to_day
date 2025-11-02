@@ -746,7 +746,10 @@ body {
 
 /* Pourcentage de progression */
 .progress-percentage {
-    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
     font-size: 1.2rem;
     font-weight: bold;
     color: #666;
@@ -756,6 +759,18 @@ body {
 .progress-value {
     color: #4CAF50;
     font-size: 1.5rem;
+}
+
+/* Récompense du palier actuel */
+.current-reward {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #4CAF50;
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(139, 195, 74, 0.1) 100%);
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 2px solid rgba(76, 175, 80, 0.3);
+    white-space: nowrap;
 }
 
 /* Bouton Mode Admin */

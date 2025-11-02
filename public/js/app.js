@@ -584,6 +584,28 @@ function updateProgressBar(section, starsEarned, starsMax) {
         progressValue.textContent = percentage;
     }
     
+    // Définir les récompenses pour chaque palier
+    const rewards = {
+        0: '',
+        25: '📺 5min',
+        50: '📺 10min',
+        75: '📺 15min + 🎮 15min',
+        100: '📺 20min + 🎮 20min'
+    };
+    
+    // Trouver le palier actuel atteint
+    let currentMilestone = 0;
+    if (percentage >= 100) currentMilestone = 100;
+    else if (percentage >= 75) currentMilestone = 75;
+    else if (percentage >= 50) currentMilestone = 50;
+    else if (percentage >= 25) currentMilestone = 25;
+    
+    // Afficher la récompense du palier actuel
+    const rewardSpan = section.querySelector('.current-reward');
+    if (rewardSpan) {
+        rewardSpan.textContent = rewards[currentMilestone];
+    }
+    
     // Mettre à jour les paliers (25%, 50%, 75%, 100%)
     // Masquer les paliers dépassés (ceux qui sont complètement atteints)
     milestones.forEach(milestone => {
