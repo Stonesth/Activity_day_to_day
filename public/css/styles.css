@@ -257,12 +257,66 @@ body {
 .person-title {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 12px;
+    width: 100%;
 }
 
 .person-name {
     font-size: 2rem;
     font-weight: bold;
+}
+
+/* Conteneur des boutons admin */
+.admin-buttons {
+    display: none; /* Caché par défaut */
+    gap: 8px;
+    align-items: center;
+}
+
+/* Afficher en mode admin */
+.admin-mode-active .admin-buttons {
+    display: flex;
+}
+
+/* Bouton "Tout cocher" */
+.btn-check-all {
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(76, 175, 80, 0.3);
+}
+
+.btn-check-all:hover {
+    background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+}
+
+/* Bouton "Tout décocher" */
+.btn-uncheck-all {
+    background: linear-gradient(135deg, #9E9E9E 0%, #757575 100%);
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(158, 158, 158, 0.3);
+}
+
+.btn-uncheck-all:hover {
+    background: linear-gradient(135deg, #757575 0%, #616161 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(158, 158, 158, 0.4);
 }
 
 .papa .person-name {

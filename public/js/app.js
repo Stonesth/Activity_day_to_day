@@ -881,3 +881,42 @@ function getPersonMaxStars(person) {
     const saved = localStorage.getItem(`maxStars_${person}`);
     return saved !== null ? parseInt(saved) : null;
 };
+
+// Fonction pour cocher/décocher toutes les tâches d'une personne
+window.checkAllTasks = async function(person, checked) {
+    try {
+        // Récupérer toutes les tâches de cette personne
+        const tasksQuery = query(
+            collection(window.db, 'tasks'),
+            where('assignedTo', '==', person)
+        );
+        
+        const snapshot = await getDocs(tasksQuery);
+        
+        if (snapshot.empty) {
+            showNotification(`Aucune tâche pour ${person}`, 'info');
+            return;
+        }
+        
+        // Mettre à jour toutes les tâches (normales, bonus ET pénalités)
+        const updatePromises = [];
+        snapshot.forEach(docSnap => {
+            const taskRef = doc(window.db, 'tasks', docSnap.id);
+            updatePromises.push(
+                updateDoc(taskRef, {
+                    completed: checked,
+                    updatedAt: serverTimestamp()
+                })
+            );
+        });
+        
+        await Promise.all(updatePromises);
+        
+        const action = checked ? 'cochées' : 'décochées';
+        showNotification(`✅ Toutes les tâches de ${person} ont été ${action}`, 'success');
+        
+    } catch (error) {
+        console.error('Erreur lors du cochage des tâches:', error);
+        showNotification('❌ Erreur lors de la mise à jour', 'error');
+    }
+};

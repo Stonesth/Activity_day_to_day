@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tableau des Tâches Familiales - Dynamique</title>
-    <link rel="stylesheet" href="css/styles.css?v=3.1">
+    <link rel="stylesheet" href="css/styles.css?v=3.2">
 </head>
 <body>
     <div class="container">
@@ -109,9 +109,17 @@
                 <div class="person-header">
                     <div class="person-title">
                         <div class="person-name">👨 Papa</div>
-                        <button class="btn-reset" onclick="resetPersonTasks('papa')" title="Réinitialiser toutes les tâches">
-                            🔄 Reset
-                        </button>
+                        <div class="admin-buttons">
+                            <button class="btn-check-all" onclick="checkAllTasks('papa', true)" title="Cocher toutes les tâches">
+                                ✅ Tout cocher
+                            </button>
+                            <button class="btn-uncheck-all" onclick="checkAllTasks('papa', false)" title="Décocher toutes les tâches">
+                                ⬜ Tout décocher
+                            </button>
+                            <button class="btn-reset" onclick="resetPersonTasks('papa')" title="Réinitialiser toutes les tâches">
+                                🔄 Reset
+                            </button>
+                        </div>
                     </div>
                     <div class="stats">
                         <div class="stars-earned">
@@ -161,9 +169,17 @@
                 <div class="person-header">
                     <div class="person-title">
                         <div class="person-name">👩 Maman</div>
-                        <button class="btn-reset" onclick="resetPersonTasks('maman')" title="Réinitialiser toutes les tâches">
-                            🔄 Reset
-                        </button>
+                        <div class="admin-buttons">
+                            <button class="btn-check-all" onclick="checkAllTasks('maman', true)" title="Cocher toutes les tâches">
+                                ✅ Tout cocher
+                            </button>
+                            <button class="btn-uncheck-all" onclick="checkAllTasks('maman', false)" title="Décocher toutes les tâches">
+                                ⬜ Tout décocher
+                            </button>
+                            <button class="btn-reset" onclick="resetPersonTasks('maman')" title="Réinitialiser toutes les tâches">
+                                🔄 Reset
+                            </button>
+                        </div>
                     </div>
                     <div class="stats">
                         <div class="stars-earned">
@@ -213,9 +229,17 @@
                 <div class="person-header">
                     <div class="person-title">
                         <div class="person-name">👦 Bastien</div>
-                        <button class="btn-reset" onclick="resetPersonTasks('bastien')" title="Réinitialiser toutes les tâches">
-                            🔄 Reset
-                        </button>
+                        <div class="admin-buttons">
+                            <button class="btn-check-all" onclick="checkAllTasks('bastien', true)" title="Cocher toutes les tâches">
+                                ✅ Tout cocher
+                            </button>
+                            <button class="btn-uncheck-all" onclick="checkAllTasks('bastien', false)" title="Décocher toutes les tâches">
+                                ⬜ Tout décocher
+                            </button>
+                            <button class="btn-reset" onclick="resetPersonTasks('bastien')" title="Réinitialiser toutes les tâches">
+                                🔄 Reset
+                            </button>
+                        </div>
                     </div>
                     <div class="stats">
                         <div class="stars-earned">
@@ -265,9 +289,17 @@
                 <div class="person-header">
                     <div class="person-title">
                         <div class="person-name">🧒 Florent</div>
-                        <button class="btn-reset" onclick="resetPersonTasks('florent')" title="Réinitialiser toutes les tâches">
-                            🔄 Reset
-                        </button>
+                        <div class="admin-buttons">
+                            <button class="btn-check-all" onclick="checkAllTasks('florent', true)" title="Cocher toutes les tâches">
+                                ✅ Tout cocher
+                            </button>
+                            <button class="btn-uncheck-all" onclick="checkAllTasks('florent', false)" title="Décocher toutes les tâches">
+                                ⬜ Tout décocher
+                            </button>
+                            <button class="btn-reset" onclick="resetPersonTasks('florent')" title="Réinitialiser toutes les tâches">
+                                🔄 Reset
+                            </button>
+                        </div>
                     </div>
                     <div class="stats">
                         <div class="stars-earned">
@@ -418,6 +450,6 @@
         window.db = db;
     </script>
     
-    <script type="module" src="js/app.js?v=3.1"></script>
+    <script type="module" src="js/app.js?v=3.2"></script>
 </body>
 </html>
