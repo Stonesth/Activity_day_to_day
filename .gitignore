@@ -236,8 +236,12 @@ temp/
 *.swo
 *~
 
-# Node modules
+# Dependency directories
 node_modules/
+
+# Firebase initialization scripts (contain API keys)
+public/init-reset.html
+public/js/init-reset-config.js
 package-lock.json
 
 # Firebase
