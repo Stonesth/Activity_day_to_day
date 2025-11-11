@@ -46,17 +46,29 @@ Application web dynamique permettant à toute la famille de gérer et suivre les
 Activity_day_to_day/
 ├── public/                    # Fichiers publics à déployer
 │   ├── index.html            # Page principale
+│   ├── admin.html            # Interface d'administration
+│   ├── init-reset.html       # Initialisation de la configuration reset
 │   ├── css/
 │   │   └── styles.css        # Styles CSS
 │   └── js/
-│       └── app.js            # Logique JavaScript avec Firebase
+│       ├── app.js            # Logique JavaScript principale
+│       ├── reset-admin.js    # Gestion du reset admin
+│       ├── reset-admin-standalone.js  # Admin standalone
+│       └── init-reset-config.js       # Initialisation config
+├── functions/                # Cloud Functions
+│   ├── index.js             # Fonctions de reset (auto + manuel)
+│   ├── email.js             # Module d'envoi d'emails (Resend)
+│   ├── package.json         # Dépendances Node.js
+│   └── CONFIG_EMAIL.md      # Configuration email
 ├── firebase.json             # Configuration Firebase
 ├── firestore.rules           # Règles de sécurité Firestore
 ├── firestore.indexes.json    # Index Firestore
 ├── .firebaserc               # Configuration du projet Firebase
 ├── tableau-taches-familiales.html  # Version statique (référence)
+├── RESET_AUTO.md             # Documentation reset automatique
 ├── SETUP.md                  # Guide de configuration
 ├── SPECIFICATIONS.md         # Spécifications détaillées
+├── FEATURES_FUTURES.md       # Fonctionnalités futures
 └── TODO.md                   # Liste des tâches de développement
 ```
 
@@ -107,10 +119,24 @@ Activity_day_to_day/
 
 ## Utilisation
 
+### Utilisation Quotidienne
 1. **Ajouter une tâche** : Cliquez sur "➕ Ajouter une tâche" et remplissez le formulaire
 2. **Compléter une tâche** : Cliquez sur le cercle à côté de la tâche
 3. **Filtrer les tâches** : Utilisez les boutons de filtre en haut
 4. **Supprimer une tâche** : Cliquez sur "🗑️ Supprimer"
+
+### Interface Admin
+1. **Accès** : Allez sur `/admin.html` ou cliquez sur "⚙️ Admin" dans le menu
+2. **Code PIN** : Entrez le code PIN configuré (par défaut : 1571)
+3. **Configuration du Reset** :
+   - Activez/désactivez le reset automatique
+   - Choisissez l'heure de reset (format 24h)
+   - Sélectionnez les jours actifs
+   - Configurez les notifications email
+4. **Reset Manuel** :
+   - Mode Test : Simule le reset sans modifier les données
+   - Mode Force : Effectue un reset immédiat
+5. **Historique** : Consultez les 7 derniers resets avec statistiques
 
 ## Base de Données
 
@@ -199,6 +225,8 @@ Statistiques quotidiennes sauvegardées avant chaque reset :
 - 📋 [Spécifications complètes](SPECIFICATIONS.md)
 - ✅ [Liste des tâches de développement](TODO.md)
 - 💡 [Fonctionnalités futures](FEATURES_FUTURES.md)
+- ⏰ [Configuration du reset automatique](RESET_AUTO.md)
+- 📧 [Configuration des emails](functions/CONFIG_EMAIL.md)
 - 🔒 [Guide de sécurité Firebase](SECURITY.md)
 - 🌍 [Gestion de l'environnement (Node.js vs Python)](ENVIRONMENT.md)
 - 🚨 [Gérer l'alerte GitHub "Secret détecté"](GITHUB_ALERT.md)
@@ -217,11 +245,21 @@ Statistiques quotidiennes sauvegardées avant chaque reset :
 
 ## Versions
 
-### Version 1.0 (Actuelle)
+### Version 2.0 (Actuelle) - Novembre 2025
 - Application web dynamique avec Firebase
 - CRUD complet des tâches
 - Synchronisation temps réel
 - Interface responsive
+- **Reset automatique quotidien** avec scheduler
+- **Interface admin** avec code PIN
+- **Historique des statistiques** quotidiennes
+- **Notifications email** via Resend
+- **Firebase Cloud Functions (2nd Gen)**
+
+### Version 1.0
+- Application de base avec gestion des tâches
+- Système d'étoiles et paliers de récompenses
+- Barre de progression
 
 ### Version Statique (Référence)
 - `tableau-taches-familiales.html` : Version HTML statique d'origine
