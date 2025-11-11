@@ -117,9 +117,17 @@ async function getResetConfig() {
     // Configuration par défaut si non existante
     return {
       enabled: true,
-      time: '06:00',
+      resetTime: '06:00',  // Corrigé de 'time' à 'resetTime'
       timezone: 'Europe/Paris',
-      activeDays: [1, 2, 3, 4, 5, 6, 0],
+      activeDays: {
+        lundi: true,
+        mardi: true,
+        mercredi: true,
+        jeudi: true,
+        vendredi: true,
+        samedi: true,
+        dimanche: true
+      },
       lastReset: null,
       notifications: {
         email: {
