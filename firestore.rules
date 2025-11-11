@@ -45,5 +45,26 @@ service cloud.firestore {
       // Empêcher la création et suppression (données fixes)
       allow create, delete: if false;
     }
+    
+    // Règles pour la collection reset_config
+    match /reset_config/{configId} {
+      // Permettre la lecture à tous
+      allow read: if true;
+      
+      // Permettre la création et modification (pour initialisation et interface admin)
+      allow create, update: if true;
+      
+      // Empêcher la suppression
+      allow delete: if false;
+    }
+    
+    // Règles pour la collection daily_stats
+    match /daily_stats/{statsId} {
+      // Permettre la lecture à tous
+      allow read: if true;
+      
+      // Empêcher toute écriture manuelle (seulement via Cloud Functions)
+      allow create, update, delete: if false;
+    }
   }
 }

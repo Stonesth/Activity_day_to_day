@@ -265,9 +265,337 @@ Ajouter un champ `isBonus` :
 
 ---
 
+## ⏰ 3. Reset Automatique Quotidien des Tâches
+
+### 📋 Description
+Implémenter un système de remise à zéro automatique de toutes les tâches cochées à une heure prédéfinie chaque jour.
+
+### 🎯 Objectif
+Automatiser la gestion quotidienne des tâches pour éviter la manipulation manuelle et assurer une remise à zéro cohérente pour toute la famille.
+
+### 🔧 Fonctionnalités à Implémenter
+
+#### 3.1 Configuration de l'Heure de Reset
+
+**Interface Admin** :
+```
+┌─────────────────────────────────────────┐
+│        ⚙️ Paramètres Système            │
+├─────────────────────────────────────────┤
+│ Reset Automatique des Tâches :          │
+│                                          │
+│ ✅ Activer le reset quotidien            │
+│                                          │
+│ Heure de reset : [06:00] ⏰             │
+│ Fuseau horaire : [Europe/Paris ▼]       │
+│                                          │
+│ Jours actifs :                           │
+│ ☑️ Lundi    ☑️ Mardi   ☑️ Mercredi     │
+│ ☑️ Jeudi    ☑️ Vendredi ☑️ Samedi      │
+│ ☑️ Dimanche                              │
+│                                          │
+│ [Sauvegarder] [Test Reset]               │
+└─────────────────────────────────────────┘
+```
+
+#### 3.2 Mécanisme de Reset
+
+**Fonctionnement** :
+1. **Vérification périodique** : Toutes les minutes, vérifier si l'heure de reset est atteinte
+2. **Conditions de reset** :
+   - Heure actuelle >= heure configurée
+   - Jour actuel activé dans la configuration
+   - Pas de reset déjà effectué aujourd'hui
+3. **Actions de reset** :
+   - Marquer toutes les tâches comme `completed: false`
+   - Conserver l'historique des tâches (ne pas supprimer)
+   - Logger l'opération de reset
+   - Notifier les utilisateurs connectés
+
+#### 3.3 Historique et Statistiques
+
+**Sauvegarde avant Reset** :
+```javascript
+// Collection "daily_stats" dans Firestore
+{
+  id: "stats_2025_11_11",
+  date: "2025-11-11",
+  resetTime: "06:00",
+  beforeReset: {
+    papa: { completed: 8, total: 10, stars: 24 },
+    maman: { completed: 9, total: 12, stars: 28 },
+    bastien: { completed: 15, total: 18, stars: 45 },
+    florent: { completed: 12, total: 15, stars: 36 }
+  },
+  resetBy: "system_auto",
+  createdAt: timestamp
+}
+```
+
+#### 3.4 Interface de Monitoring
+
+**Dashboard Reset** :
+```
+┌─────────────────────────────────────────┐
+│        📊 Historique des Resets         │
+├─────────────────────────────────────────┤
+│ Prochain reset : Demain à 06:00 ⏰      │
+│ Dernier reset : Aujourd'hui à 06:00 ✅  │
+│                                          │
+│ Historique (7 derniers jours) :         │
+│                                          │
+│ 11/11/2025 06:00 ✅ Auto - 44 tâches    │
+│ 10/11/2025 06:00 ✅ Auto - 42 tâches    │
+│ 09/11/2025 06:00 ✅ Auto - 38 tâches    │
+│ 08/11/2025 06:00 ✅ Auto - 41 tâches    │
+│ 07/11/2025 06:00 ✅ Auto - 39 tâches    │
+│ 06/11/2025 06:00 ✅ Auto - 43 tâches    │
+│ 05/11/2025 06:00 ✅ Auto - 37 tâches    │
+│                                          │
+│ [Voir Détails] [Forcer Reset Maintenant]│
+└─────────────────────────────────────────┘
+```
+
+#### 3.5 Notifications et Feedback
+
+**Notification lors du Reset** :
+```
+┌─────────────────────────────────────────┐
+│        🔄 Reset Automatique             │
+├─────────────────────────────────────────┤
+│ ✅ Toutes les tâches ont été remises     │
+│    à zéro à 06:00 ce matin              │
+│                                          │
+│ Statistiques d'hier :                   │
+│ • Papa : 8/10 tâches (24⭐)             │
+│ • Maman : 9/12 tâches (28⭐)            │
+│ • Bastien : 15/18 tâches (45⭐)         │
+│ • Florent : 12/15 tâches (36⭐)         │
+│                                          │
+│ 🎉 Bonne journée et bon courage !       │
+│                                          │
+│ [OK] [Voir Détails]                     │
+└─────────────────────────────────────────┘
+```
+
+#### 3.6 Configuration Technique
+
+**Variables d'Environnement** :
+```javascript
+// Configuration par défaut
+const RESET_CONFIG = {
+  enabled: true,
+  time: "06:00",
+  timezone: "Europe/Paris",
+  days: [1, 2, 3, 4, 5, 6, 0], // Lun-Dim
+  notifications: {
+    email: {
+      enabled: true,
+      address: "pierre.thonon@gmail.com",
+      onSuccess: true,
+      onError: true,
+      weeklyStats: true
+    }
+  }
+};
+```
+
+**Implémentation avec Cloud Functions** :
+```javascript
+// Firebase Cloud Function - Scheduled
+exports.dailyTaskReset = functions
+  .region('europe-west1')
+  .pubsub
+  .schedule('0 6 * * *') // Tous les jours à 6h
+  .timeZone('Europe/Paris')
+  .onRun(async (context) => {
+    try {
+      // 1. Sauvegarder les statistiques
+      const stats = await saveStatistics();
+      
+      // 2. Effectuer le reset
+      await resetAllTasks();
+      
+      // 3. Envoyer email de confirmation
+      await sendSuccessEmail(stats);
+      
+    } catch (error) {
+      // Envoyer email d'erreur
+      await sendErrorEmail(error);
+      throw error;
+    }
+  });
+
+// Fonction d'envoi d'email de succès
+async function sendSuccessEmail(stats) {
+  const config = await getResetConfig();
+  if (!config.notifications.email.enabled || !config.notifications.email.onSuccess) {
+    return;
+  }
+  
+  const emailContent = generateSuccessEmailContent(stats);
+  await sendEmail(config.notifications.email.address, emailContent);
+}
+
+// Fonction d'envoi d'email d'erreur  
+async function sendErrorEmail(error) {
+  const config = await getResetConfig();
+  if (!config.notifications.email.enabled || !config.notifications.email.onError) {
+    return;
+  }
+  
+  const emailContent = generateErrorEmailContent(error);
+  await sendEmail(config.notifications.email.address, emailContent);
+}
+```
+
+#### 3.7 Notifications Email
+
+**Configuration Email** :
+```
+┌─────────────────────────────────────────┐
+│        📧 Notifications Email           │
+├─────────────────────────────────────────┤
+│ ✅ Activer les notifications email      │
+│                                          │
+│ Email de notification :                  │
+│ [pierre.thonon@gmail.com]               │
+│                                          │
+│ Types de notifications :                 │
+│ ☑️ Reset quotidien effectué             │
+│ ☑️ Erreur lors du reset                 │
+│ ☑️ Statistiques hebdomadaires           │
+│                                          │
+│ [Tester Email] [Sauvegarder]            │
+└─────────────────────────────────────────┘
+```
+
+**Contenu des Emails** :
+
+*Email de Reset Quotidien* :
+```
+Objet: ✅ Reset Quotidien Effectué - Activity Day to Day
+
+Bonjour,
+
+Le reset automatique des tâches a été effectué avec succès ce matin à 06:00.
+
+📊 Statistiques d'hier (10/11/2025) :
+• Papa : 8/10 tâches (80%) - 24⭐
+• Maman : 9/12 tâches (75%) - 28⭐  
+• Bastien : 15/18 tâches (83%) - 45⭐
+• Florent : 12/15 tâches (80%) - 36⭐
+
+🏆 Performance Familiale : 80% (44/55 tâches)
+⭐ Total Étoiles : 133⭐
+
+Bonne journée !
+Activity Day to Day
+```
+
+*Email d'Erreur* :
+```
+Objet: ⚠️ Erreur Reset Automatique - Activity Day to Day
+
+Bonjour,
+
+Une erreur s'est produite lors du reset automatique ce matin.
+
+❌ Erreur : Timeout de connexion à Firestore
+🕐 Heure : 06:00
+🔄 Statut : Échec
+
+Action requise : Vérifier la configuration Firebase ou effectuer un reset manuel.
+
+Cordialement,
+Activity Day to Day
+```
+
+### ⚠️ Considérations Techniques
+
+#### 3.8 Sécurité et Fiabilité
+- **Double vérification** : Vérifier que le reset n'a pas déjà eu lieu
+- **Logs détaillés** : Tracer toutes les opérations de reset
+- **Rollback** : Possibilité d'annuler un reset en cas d'erreur
+- **Monitoring** : Alertes si le reset échoue plusieurs fois
+
+#### 3.9 Performance
+- **Batch operations** : Traiter toutes les tâches en une seule transaction
+- **Indexation** : Index sur les champs `completed` et `assignedTo`
+- **Cache** : Éviter les lectures multiples de configuration
+
+#### 3.10 UX et Communication
+- **Prévisibilité** : Afficher clairement quand aura lieu le prochain reset
+- **Transparence** : Historique visible de tous les resets
+- **Contrôle** : Possibilité de forcer un reset manuel si nécessaire
+
+### 💡 Améliorations Futures du Reset Automatique
+
+**Phase 1 : Reset Simple** ✅ **TERMINÉE** (11/11/2025)
+- ✅ Reset à heure fixe pour tous (06:00)
+- ✅ Configuration basique (heure + jours)
+- ✅ Notifications email avec statistiques
+- ✅ Sauvegarde automatique des stats quotidiennes
+- ✅ Cloud Function déployée et opérationnelle
+
+**Phase 2 : Interface Admin et Configuration** (À faire)
+- 🔧 Interface admin pour modifier :
+  - Heure de reset
+  - Jours actifs
+  - Email de notification
+  - Activer/désactiver le système
+- 📊 Dashboard de monitoring :
+  - Historique des resets (7 derniers jours)
+  - Graphiques de progression
+  - Statistiques familiales
+- ⚙️ Bouton "Test Reset" manuel
+- 🔄 Bouton "Forcer Reset Maintenant"
+
+**Phase 3 : Statistiques Avancées** (À faire)
+- 📧 Rapports hebdomadaires par email (dimanche soir)
+- 📈 Graphiques de progression sur 30 jours
+- 🏆 Comparaisons de performance (qui s'améliore ?)
+- 📊 Tendances et analyses :
+  - Meilleurs jours de la semaine
+  - Périodes de baisse/hausse
+  - Objectifs atteints vs non atteints
+- 💾 Export des données (CSV, Excel)
+
+**Phase 4 : Intelligence et Notifications** (Futur)
+- 🤖 Apprentissage des habitudes familiales
+- 💡 Suggestions d'optimisation des horaires
+- 🔮 Prédictions de performance
+- 📱 Notifications push sur mobile
+- 🎯 Alertes si performance en baisse
+- 🏅 Badges et récompenses automatiques
+
+---
+
 ## 📅 Planning d'Implémentation (Suggestion)
 
-### Phase 1 : Tâches Bonus (Plus simple)
+### Phase 1 : Reset Automatique ✅ **COMPLÉTÉE** (11/11/2025)
+1. ✅ Créer la configuration de reset dans Firestore
+2. ✅ Implémenter la Cloud Function de reset quotidien
+3. ✅ Créer le système de sauvegarde des statistiques
+4. ✅ Implémenter les notifications email
+5. ✅ Configurer les secrets email (Gmail App Password)
+6. ✅ Déployer et tester
+
+**Temps réel** : 3 heures
+**Statut** : ✅ Opérationnel - Premier reset demain 12/11/2025 à 06:00
+
+**Ce qui fonctionne** :
+- Reset automatique quotidien à 06:00
+- Sauvegarde des stats dans `daily_stats`
+- Email quotidien à pierre.thonon@gmail.com
+- Collection `reset_config` configurée
+
+**Ce qui reste à faire** :
+- Interface admin pour modifier la configuration
+- Dashboard de monitoring
+- Bouton de test/reset manuel
+
+### Phase 2 : Tâches Bonus (Moyenne priorité)
 1. Ajouter le champ `isBonus` à la base de données
 2. Modifier le formulaire d'ajout
 3. Adapter le calcul de progression
@@ -276,7 +604,7 @@ Ajouter un champ `isBonus` :
 
 **Temps estimé** : 2-3 heures
 
-### Phase 2 : Système de Pénalités (Plus complexe)
+### Phase 3 : Système de Pénalités (Plus complexe)
 1. Concevoir la structure de données
 2. Créer l'interface d'ajout de pénalité
 3. Implémenter le calcul des étoiles négatives
@@ -313,6 +641,13 @@ Ajouter un champ `isBonus` :
 
 ---
 
-**Dernière mise à jour** : 21 octobre 2025  
-**Statut** : 💡 Idées - Pas encore implémenté  
-**Priorité** : À définir
+**Dernière mise à jour** : 11 novembre 2025  
+**Statut** :  
+- ✅ Reset Automatique (Phase 1) - **IMPLÉMENTÉ ET OPÉRATIONNEL**
+- 💡 Tâches Bonus - Pas encore implémenté
+- 💡 Pénalités - Pas encore implémenté
+
+**Priorités** :  
+1. **Haute** : Interface admin pour Reset Automatique (Phase 2)
+2. **Moyenne** : Tâches Bonus
+3. **Basse** : Système de Pénalités

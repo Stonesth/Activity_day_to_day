@@ -823,6 +823,12 @@ function enableAdminMode() {
     
     // Ajouter la classe pour montrer les boutons de suppression et les inputs
     container.classList.add('admin-mode-active');
+    
+    // Afficher le lien Admin Reset
+    const resetAdminLink = document.querySelector('.reset-admin-btn');
+    if (resetAdminLink) {
+        resetAdminLink.style.display = 'inline-block';
+    }
 }
 
 // Désactiver le mode admin
@@ -838,6 +844,12 @@ function disableAdminMode() {
     
     // Retirer la classe pour cacher les boutons de suppression et les inputs
     container.classList.remove('admin-mode-active');
+    
+    // Masquer le lien Admin Reset
+    const resetAdminLink = document.querySelector('.reset-admin-btn');
+    if (resetAdminLink) {
+        resetAdminLink.style.display = 'none';
+    }
     
     showNotification('🔒 Mode Admin désactivé', 'info');
 }

@@ -18,6 +18,20 @@ Application web dynamique permettant à toute la famille de gérer et suivre les
 - 📊 Statistiques avec total d'étoiles gagnées par personne
 - 🏷️ Catégories des tâches (quotidien, hebdomadaire, mensuel)
 - ✓ Système de check-list interactif
+- 🔐 Mode Admin avec code PIN pour les fonctions sensibles
+- 📈 Barre de progression avec paliers de récompenses
+- ⏰ **Reset automatique quotidien** : Remise à zéro des tâches à heure programmée
+  - Configuration flexible de l'heure et des jours actifs
+  - Sauvegarde automatique des statistiques avant reset
+  - Historique des 7 derniers resets
+  - Notifications email (succès/erreur)
+- 🔄 **Reset manuel** : Possibilité de forcer un reset depuis l'interface admin
+  - Mode test (sans reset réel) pour vérifier la configuration
+  - Mode force pour un reset immédiat
+
+✨ **Fonctionnalités futures** :
+- 🎁 **Tâches bonus** : Système 75% normal + 25% bonus pour encourager les efforts
+- ⛔ **Système de pénalités** : Étoiles négatives pour les mauvais comportements
 
 ## Membres de la Famille
 
@@ -114,18 +128,77 @@ Chaque tâche contient :
 
 **Système d'étoiles** : Chaque tâche rapporte de 1 à 5 étoiles. Plus la tâche est importante ou difficile, plus elle vaut d'étoiles ! Les étoiles sont comptabilisées uniquement lorsque la tâche est complétée.
 
+### Collection `reset_config`
+
+Configuration du reset automatique :
+- `enabled` : Activation du reset automatique (boolean)
+- `resetTime` : Heure du reset (format "HH:MM")
+- `timezone` : Fuseau horaire (ex: "Europe/Paris")
+- `activeDays` : Jours actifs (object avec lundi, mardi, etc.)
+- `lastReset` : Date du dernier reset (format ISO)
+- `notifications` : Configuration des notifications email
+
+### Collection `daily_stats`
+
+Statistiques quotidiennes sauvegardées avant chaque reset :
+- `date` : Date des statistiques (format ISO)
+- `resetTime` : Heure du reset
+- `beforeReset` : Données par membre de famille
+  - `completed` : Nombre de tâches complétées
+  - `total` : Nombre total de tâches
+  - `stars` : Étoiles gagnées
+  - `completionRate` : Taux de complétion (%)
+- `totalTasks` : Total des tâches
+- `totalCompleted` : Total des tâches complétées
+- `totalStars` : Total des étoiles
+- `familyCompletionRate` : Taux de complétion familial
+- `resetBy` : Type de reset (system_auto, manual)
+- `createdAt` : Timestamp de création
+
 ## Technologies Utilisées
 
-- **Frontend** : HTML5, CSS3, JavaScript (ES6 Modules)
-- **Backend** : Firebase Firestore
-- **Hosting** : Firebase Hosting
-- **Real-time** : Firebase Firestore onSnapshot
+### Frontend
+- **HTML5** : Structure de l'application
+- **CSS3** : Styles et animations
+- **JavaScript (ES6+)** : Logique applicative avec modules ES6
+- **Firebase SDK v10** : SDK modulaire pour une meilleure performance
+
+### Backend & Cloud
+- **Firebase Firestore** : Base de données NoSQL temps réel
+- **Firebase Cloud Functions (2nd Gen)** : Fonctions serverless Node.js 20
+  - Reset automatique quotidien (scheduler)
+  - Reset manuel via interface admin
+  - Sauvegarde des statistiques quotidiennes
+- **Firebase Cloud Scheduler** : Planification des tâches automatiques
+- **Firebase Secret Manager** : Gestion sécurisée des clés API
+
+### Hosting & Déploiement
+- **Firebase Hosting** : Hébergement web avec CDN global
+- **Firebase CLI** : Outils de déploiement et gestion
+
+### Services Externes
+- **Resend** : Service d'envoi d'emails transactionnels
+  - Notifications de succès/erreur pour les resets
+  - Templates HTML personnalisés
+  - API REST simple et fiable
+
+### Développement
+- **Node.js 20** : Runtime JavaScript
+- **npm** : Gestionnaire de paquets
+- **Firebase Admin SDK** : Accès privilégié côté serveur
+- **ESLint** : Linter pour la qualité du code (optional)
+
+### Sécurité
+- **Firebase Security Rules** : Protection des données Firestore
+- **Code PIN** : Authentification pour le mode admin
+- **Environment Variables** : Gestion sécurisée des secrets
 
 ## Documentation
 
 - 📖 [Guide de configuration](SETUP.md)
 - 📋 [Spécifications complètes](SPECIFICATIONS.md)
 - ✅ [Liste des tâches de développement](TODO.md)
+- 💡 [Fonctionnalités futures](FEATURES_FUTURES.md)
 - 🔒 [Guide de sécurité Firebase](SECURITY.md)
 - 🌍 [Gestion de l'environnement (Node.js vs Python)](ENVIRONMENT.md)
 - 🚨 [Gérer l'alerte GitHub "Secret détecté"](GITHUB_ALERT.md)

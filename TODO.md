@@ -61,12 +61,54 @@
    - Sélectionner Firestore et Hosting
    - Choisir un projet existant ou en créer un nouveau
 
+## Nouvelles Fonctionnalités à Implémenter
+
+### 7. Reset Automatique Quotidien (Priorité Haute)
+- [ ] Créer la collection `reset_config` dans Firestore
+- [ ] Développer la Cloud Function de reset quotidien
+- [ ] Configurer Nodemailer pour l'envoi d'emails
+- [ ] Implémenter l'interface de configuration admin
+  - [ ] Sélection de l'heure de reset
+  - [ ] Choix des jours actifs
+  - [ ] Configuration du fuseau horaire
+  - [ ] Configuration email (adresse + types de notifications)
+- [ ] Créer le système de sauvegarde des statistiques quotidiennes
+- [ ] Ajouter l'historique des resets
+- [ ] Implémenter les notifications email
+  - [ ] Email de succès avec statistiques
+  - [ ] Email d'erreur en cas de problème
+  - [ ] Email de statistiques hebdomadaires
+- [ ] Créer le dashboard de monitoring
+- [ ] Tester le système de reset et les emails
+- [ ] Déployer la fonctionnalité
+
+### 8. Système de Tâches Bonus (Priorité Moyenne)
+- [ ] Ajouter le champ `isBonus` aux tâches
+- [ ] Modifier le formulaire d'ajout de tâches
+- [ ] Adapter le calcul de progression (75% normal + 25% bonus)
+- [ ] Créer l'affichage divisé de la barre de progression
+- [ ] Ajouter les badges "BONUS" sur les tâches
+- [ ] Implémenter le filtrage par type de tâche
+- [ ] Tester et ajuster le système
+
+### 9. Système de Pénalités (Priorité Basse)
+- [ ] Concevoir la structure de données des pénalités
+- [ ] Créer l'interface d'ajout de pénalité
+- [ ] Implémenter le calcul des étoiles négatives
+- [ ] Ajouter l'historique des pénalités
+- [ ] Adapter l'affichage des statistiques
+- [ ] Créer les notifications de pénalités
+- [ ] Tester en famille et ajuster
+
 ## Questions à Clarifier
 
 - [ ] Avez-vous déjà un compte Firebase/Google ?
 - [ ] Souhaitez-vous une authentification des utilisateurs ?
 - [ ] Y a-t-il des tâches récurrentes (quotidiennes, hebdomadaires) ?
 - [ ] Voulez-vous un système de notifications ?
+- [ ] **Nouvelle** : À quelle heure souhaitez-vous le reset automatique quotidien ?
+- [ ] **Nouvelle** : Quels jours de la semaine activer le reset automatique ?
+- [ ] **Nouvelle** : Quelle adresse email pour les notifications ? (actuellement: pierre.thonon@gmail.com)
 
 ## Références
 
