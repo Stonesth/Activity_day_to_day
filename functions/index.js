@@ -73,9 +73,9 @@ exports.dailyTaskReset = onSchedule({
     console.log('✅ C\'est l\'heure du reset automatique !');
     
     // 3. Vérifier si un reset a déjà été fait aujourd'hui
-    const today = new Date().toISOString().split('T')[0];
+    const today = now.toISOString().split('T')[0]; // Format: YYYY-MM-DD
     if (config.lastReset === today) {
-      console.log('✅ Reset déjà effectué aujourd\'hui');
+      console.log(`⏸️ Reset déjà effectué aujourd'hui (${today})`);
       return null;
     }
     
