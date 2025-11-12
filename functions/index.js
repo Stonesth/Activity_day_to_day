@@ -38,15 +38,28 @@ exports.dailyTaskReset = onSchedule({
     const currentHour = now.getHours();
     const currentMinute = now.getMinutes();
     const currentDay = now.toLocaleDateString('fr-FR', { weekday: 'long' }).toLowerCase();
+    const currentDayNumber = now.getDay(); // 0=Dimanche, 1=Lundi, ..., 6=Samedi
     
     // Parser l'heure de reset depuis la config (format "HH:MM")
     const [resetHour, resetMinute] = config.resetTime.split(':').map(Number);
     
     console.log(`⏰ Heure actuelle: ${currentHour}:${currentMinute}, Heure configurée: ${resetHour}:${resetMinute}`);
-    console.log(`📅 Jour actuel: ${currentDay}, Jours actifs: ${JSON.stringify(config.activeDays)}`);
+    console.log(`📅 Jour actuel: ${currentDay} (${currentDayNumber}), Jours actifs: ${JSON.stringify(config.activeDays)}`);
     
     // Vérifier si c'est le bon jour
-    if (!config.activeDays[currentDay]) {
+    // Gérer les deux formats : tableau [0,1,2,...] ou objet {lundi: true, ...}
+    let isDayActive = false;
+    if (Array.isArray(config.activeDays)) {
+      // Format tableau : [0,1,2,3,4,5,6]
+      isDayActive = config.activeDays.includes(currentDayNumber);
+      console.log(`📅 Format tableau détecté, jour ${currentDayNumber} actif: ${isDayActive}`);
+    } else {
+      // Format objet : {lundi: true, mardi: false, ...}
+      isDayActive = config.activeDays[currentDay] === true;
+      console.log(`📅 Format objet détecté, jour ${currentDay} actif: ${isDayActive}`);
+    }
+    
+    if (!isDayActive) {
       console.log(`⏸️ Reset non actif pour ${currentDay}`);
       return null;
     }
