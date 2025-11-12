@@ -110,14 +110,31 @@ exports.dailyTaskReset = onSchedule({
 async function getResetConfig() {
   try {
     const doc = await db.collection('reset_config').doc('main_config').get();
+    
     if (doc.exists) {
-      return doc.data();
+      const config = doc.data();
+      console.log('📋 Configuration trouvée dans Firestore:', JSON.stringify(config));
+      
+      // Si la config utilise 'time' au lieu de 'resetTime', on le corrige
+      if (config.time && !config.resetTime) {
+        console.log('⚠️ Migration de "time" vers "resetTime"');
+        config.resetTime = config.time;
+      }
+      
+      // Vérifier que resetTime existe
+      if (!config.resetTime) {
+        console.error('❌ ERREUR: resetTime manquant dans la config!');
+        config.resetTime = '06:00'; // Valeur par défaut
+      }
+      
+      return config;
     }
     
     // Configuration par défaut si non existante
+    console.log('⚠️ Aucune configuration trouvée, utilisation des valeurs par défaut');
     return {
       enabled: true,
-      resetTime: '06:00',  // Corrigé de 'time' à 'resetTime'
+      resetTime: '06:00',
       timezone: 'Europe/Paris',
       activeDays: {
         lundi: true,
@@ -140,7 +157,7 @@ async function getResetConfig() {
       }
     };
   } catch (error) {
-    console.error('Erreur lors de la récupération de la config:', error);
+    console.error('❌ Erreur lors de la récupération de la config:', error);
     throw error;
   }
 }
