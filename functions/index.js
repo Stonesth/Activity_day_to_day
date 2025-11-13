@@ -90,12 +90,14 @@ exports.dailyTaskReset = onSchedule({
     // 6. Mettre à jour la date du dernier reset
     await updateLastReset(today);
     
-    // 7. Envoyer email de confirmation si activé - TEMPORAIREMENT DÉSACTIVÉ
-    console.log('📧 Email temporairement désactivé (problème nodemailer à résoudre)');
-    // if (config.notifications?.email?.enabled && config.notifications?.email?.onSuccess) {
-    //   await sendSuccessEmail(config.notifications.email.address, stats);
-    //   console.log('📧 Email de confirmation envoyé');
-    // }
+    // 7. Envoyer email de confirmation si activé
+    if (config.notifications?.email?.enabled && config.notifications?.email?.onSuccess) {
+      console.log('📧 Envoi de l\'email de confirmation...');
+      await sendSuccessEmail(config.notifications.email.address, stats);
+      console.log('📧 Email de confirmation envoyé');
+    } else {
+      console.log('📧 Email désactivé dans la configuration');
+    }
     
     console.log('✅ Reset automatique terminé avec succès');
     return { success: true, tasksReset: resetCount, stats };
@@ -103,15 +105,17 @@ exports.dailyTaskReset = onSchedule({
   } catch (error) {
     console.error('❌ Erreur lors du reset automatique:', error);
     
-    // Envoyer email d'erreur si activé - TEMPORAIREMENT DÉSACTIVÉ
-    // try {
-    //   const config = await getResetConfig();
-    //   if (config.notifications?.email?.enabled && config.notifications?.email?.onError) {
-    //     await sendErrorEmail(config.notifications.email.address, error);
-    //   }
-    // } catch (emailError) {
-    //   console.error('Erreur lors de l\'envoi de l\'email d\'erreur:', emailError);
-    // }
+    // Envoyer email d'erreur si activé
+    try {
+      const config = await getResetConfig();
+      if (config.notifications?.email?.enabled && config.notifications?.email?.onError) {
+        console.log('📧 Envoi de l\'email d\'erreur...');
+        await sendErrorEmail(config.notifications.email.address, error);
+        console.log('📧 Email d\'erreur envoyé');
+      }
+    } catch (emailError) {
+      console.error('Erreur lors de l\'envoi de l\'email d\'erreur:', emailError);
+    }
     
     throw error;
   }
