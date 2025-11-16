@@ -285,7 +285,11 @@ function renderPersonTasks(person, tasks) {
     
     // Calculer le max UNIQUEMENT pour les tâches du jour actuel
     const calculatedMax = normalStarsMax + bonusStarsMax;
-    const starsMax = calculatedMax;
+    
+    // Récupérer le max manuel spécifique au jour (si défini)
+    const currentDayValue = getCurrentDay();
+    const manualMaxForDay = getPersonMaxStarsForDay(person, currentDayValue);
+    const starsMax = manualMaxForDay !== null ? manualMaxForDay : calculatedMax;
     
     // Afficher le nom du jour dans les statistiques
     const currentDayName = dayNames[getCurrentDay()];
@@ -299,10 +303,13 @@ function renderPersonTasks(person, tasks) {
         maxDisplay.textContent = starsMax;
     }
     
-    // Masquer l'input manuel car on utilise le calcul automatique par jour
+    // Afficher l'input manuel avec la valeur actuelle (calculée ou manuelle)
     const maxInput = section.querySelector('.stars-max-input');
     if (maxInput) {
-        maxInput.style.display = 'none';
+        maxInput.value = starsMax;
+        maxInput.style.display = '';
+        // Ajouter un placeholder pour indiquer la valeur auto
+        maxInput.placeholder = `Auto: ${calculatedMax}`;
     }
     
     // Calculer et mettre à jour la barre de progression avec système manuel simple
@@ -1105,20 +1112,24 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// Fonction pour sauvegarder le max manuel d'étoiles d'une personne
+// Fonction pour sauvegarder le max manuel d'étoiles d'une personne POUR UN JOUR SPÉCIFIQUE
 window.updatePersonMaxStars = function(person, maxValue) {
     const max = parseInt(maxValue) || 0;
-    localStorage.setItem(`maxStars_${person}`, max);
+    const currentDay = getCurrentDay();
+    const dayName = dayNames[currentDay];
+    
+    // Sauvegarder avec la clé incluant le jour
+    localStorage.setItem(`maxStars_${person}_day${currentDay}`, max);
     
     // Recharger les tâches pour mettre à jour l'affichage
     loadTasks();
     
-    showNotification(`✅ Max d'étoiles pour ${person} : ${max}⭐`);
+    showNotification(`✅ Max d'étoiles pour ${person} le ${dayName} : ${max}⭐`);
 };
 
-// Fonction pour récupérer le max manuel d'étoiles d'une personne
-function getPersonMaxStars(person) {
-    const saved = localStorage.getItem(`maxStars_${person}`);
+// Fonction pour récupérer le max manuel d'étoiles d'une personne pour un jour spécifique
+function getPersonMaxStarsForDay(person, dayOfWeek) {
+    const saved = localStorage.getItem(`maxStars_${person}_day${dayOfWeek}`);
     return saved !== null ? parseInt(saved) : null;
 };
 
