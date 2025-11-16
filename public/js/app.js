@@ -947,11 +947,17 @@ function updateDayDisplay() {
     const currentDayValue = getCurrentDay();
     const todayValue = getTodayDay();
     
+    // Calculer la date du jour sélectionné
+    const today = new Date();
+    const todayDayOfWeek = today.getDay();
+    const daysOffset = currentDayValue - todayDayOfWeek;
+    const selectedDate = new Date(today);
+    selectedDate.setDate(today.getDate() + daysOffset);
+    
     // Mettre à jour le titre principal
     const dayTitle = document.getElementById('dayNavigationTitle');
     if (dayTitle) {
-        const currentDate = new Date();
-        const dateStr = currentDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'numeric', year: 'numeric' });
+        const dateStr = selectedDate.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
         dayTitle.innerHTML = `📅 ${dayNames[currentDayValue].toUpperCase()} ${dateStr}`;
     }
     
@@ -960,11 +966,11 @@ function updateDayDisplay() {
     const nextDayName = document.getElementById('nextDayName');
     if (prevDayName) {
         const prevDay = (currentDayValue - 1 + 7) % 7;
-        prevDayName.textContent = dayNames[prevDay];
+        prevDayName.textContent = dayNamesShort[prevDay];
     }
     if (nextDayName) {
         const nextDay = (currentDayValue + 1) % 7;
-        nextDayName.textContent = dayNames[nextDay];
+        nextDayName.textContent = dayNamesShort[nextDay];
     }
     
     // Mettre à jour les boutons rapides (actif/inactif)
@@ -987,12 +993,14 @@ function updateDayDisplay() {
             const warningDayName = document.getElementById('warningDayName');
             const warningTodayName = document.getElementById('warningTodayName');
             if (warningDayName) {
-                const currentDate = new Date();
-                const dateStr = currentDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'numeric' });
-                warningDayName.textContent = `${dayNames[currentDayValue]} ${dateStr}`;
+                const dateStr = selectedDate.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+                warningDayName.textContent = `${dayNames[currentDayValue].toUpperCase()} ${dateStr}`;
             }
             if (warningTodayName) {
                 warningTodayName.textContent = dayNames[todayValue];
+                const todayDateStr = today.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+                document.getElementById('warningTodayName').parentElement.innerHTML = 
+                    `<small>(Aujourd'hui = ${dayNames[todayValue]} ${todayDateStr})</small>`;
             }
         } else {
             warningBanner.classList.add('hidden');
