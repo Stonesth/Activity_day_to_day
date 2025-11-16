@@ -1313,7 +1313,12 @@ Avec les jours séparés, comment gérer l'ordre ?
 - Mais peuvent être modifiées indépendamment après
 - ✅ Plus cohérent au départ
 
-**→ Laquelle préférez-vous ?** _______________
+**→ RÉPONSE : Option A - Ordre indépendant par jour** ✅
+
+**Conséquences** :
+- Lors de la création : toutes les instances ont le même ordre initial
+- Après, chaque jour peut être réordonné indépendamment
+- ✅ Maximum de flexibilité
 
 ---
 
@@ -1364,7 +1369,12 @@ Quand vous éditez une tâche du lundi, faut-il afficher qu'elle existe aussi d'
 └──────────────────────────────────┘
 ```
 
-**→ Laquelle préférez-vous ?** _______________
+**→ RÉPONSE : Option A - Ne rien afficher** ✅
+
+**Conséquences** :
+- Formulaire d'édition simple et épuré
+- Pas d'information sur les autres jours
+- ✅ Simplicité maximale
 
 ---
 
@@ -1384,7 +1394,13 @@ Voulez-vous une option dans l'interface admin pour déclencher la migration manu
 [Admin] > [Migration] > [Migrer vers système par jour (⚠️ IRRÉVERSIBLE)]
 ```
 
-**→ Comment voulez-vous gérer la migration ?** _______________
+**→ RÉPONSE : Script sur TEST d'abord** ✅
+
+**Workflow de migration** :
+1. Je crée le script de migration
+2. Vous l'exécutez sur TEST pour vérifier
+3. Vous testez la nouvelle fonctionnalité sur TEST
+4. Si tout OK, vous l'exécutez sur PROD
 
 ---
 
@@ -1399,6 +1415,13 @@ Cela me permettra de vous dire :
 - Nombre de tâches après migration : _____ × 7 = _____ tâches
 - Temps de migration estimé
 - Risques éventuels
+
+**→ RÉPONSE : Ne sait pas** 
+
+**Solution** :
+- Je crée le script pour qu'il fonctionne quel que soit le nombre
+- Le script affichera le nombre de tâches avant/après migration
+- Vous pourrez vérifier sur la console Firebase si besoin
 
 ---
 
@@ -1424,22 +1447,193 @@ Avec les tâches séparées, peut-être voulez-vous différencier visuellement ?
 
 **Option C** : Ne rien faire automatiquement, mais vous permettre de le faire manuellement si besoin
 
-**→ Laquelle préférez-vous ?** _______________
+**→ RÉPONSE : Option A - Garder le même titre** ✅
+
+**Conséquences** :
+- Les 7 tâches auront le même titre
+- Différenciation uniquement par le jour affiché
+- ✅ Interface plus propre
 
 ---
 
-### 🚀 RÉSUMÉ - PRÊT À CODER ?
+### 🎉 TOUTES LES QUESTIONS RÉPONDUES !
 
-**Une fois que vous répondez aux Questions 12-16** (les 5 dernières questions pratiques), je serai prêt à :
+**✅ RÉSUMÉ COMPLET DES DÉCISIONS (16 Questions)**
 
-1. ✅ Commencer l'implémentation sur **TEST**
-2. ✅ Créer la structure de base de données
-3. ✅ Modifier le formulaire d'ajout
-4. ✅ Ajouter la navigation des jours
-5. ✅ Créer le script de migration
-6. ✅ Tester avec vous sur TEST
+#### 📋 Questions 1-6 : Vision Générale
+1. **Portée** : Tâches différentes par jour + chaque jour sa liste
+2. **Complexité** : Niveau 1 Simple (mais évoluera vers Niveau 2)
+3. **Exemples** : *(À compléter avec vos cas réels)*
+4. **Vue** : Garder affichage par personne + navigation jours
+5. **Tâches existantes** : Migration automatique ×7
+6. **Statistiques** : Uniquement tâches du jour actuel
 
-**Estimation finale : ~5h30-6h de développement**
+#### 🏗️ Questions 7-11 : Architecture Technique
+7. **Groupement** : Tâches totalement indépendantes (Option B)
+8. **Création** : Immédiate de multiples tâches
+9. **Migration** : Dupliquer ×7 toutes les tâches
+10. **Édition** : Uniquement le jour actuel
+11. **Suppression** : Uniquement le jour actuel
+
+#### 🎨 Questions 12-16 : Détails Pratiques
+12. **Ordre** : Indépendant par jour
+13. **Formulaire édition** : Simple, sans info sur autres jours
+14. **Migration** : Script à tester sur TEST d'abord
+15. **Nombre tâches** : Inconnu (script flexible)
+16. **Nom tâche** : Garder titre identique
+
+---
+
+### 🎯 SPÉCIFICATION TECHNIQUE FINALE
+
+#### Structure Base de Données
+```javascript
+{
+  id: "task_abc123",
+  title: "Ranger sa chambre",
+  assignedTo: "bastien",
+  stars: 3,
+  completed: false,
+  order: 0,
+  dayOfWeek: 1,  // ← NOUVEAU : 0=Dim, 1=Lun, ... 6=Sam
+  createdAt: timestamp
+}
+```
+
+#### Fonctionnalités à Implémenter
+
+**1. Navigation des jours** (header)
+```
+┌─────────────────────────────────────────┐
+│  ← Samedi | 📅 DIMANCHE 16/11 | Lundi → │
+│  [Dim] [Lun] [Mar] [Mer] [Jeu] [Ven] [Sam]│
+└─────────────────────────────────────────┘
+
+⚠️ VOUS CONSULTEZ : LUNDI 17/11
+(Aujourd'hui = Dimanche 16/11)
+[Retour à Aujourd'hui]
+```
+
+**2. Formulaire d'ajout modifié**
+```
+┌────────────────────────────────┐
+│ ➕ Ajouter une Tâche            │
+├────────────────────────────────┤
+│ Nom : [____________]           │
+│ Personne : [Bastien ▼]        │
+│ Étoiles : [3]                  │
+│                                │
+│ 📅 Jours actifs :              │
+│ ☐ Lun ☐ Mar ☐ Mer ☐ Jeu ...   │
+│ ☑ Tous les jours               │
+│                                │
+│ [Annuler] [Ajouter]            │
+└────────────────────────────────┘
+```
+→ Créer N tâches selon jours cochés
+
+**3. Filtrage**
+```javascript
+const currentDay = selectedDay || new Date().getDay();
+tasks.filter(task => task.dayOfWeek === currentDay);
+```
+
+**4. Statistiques**
+```
+👦 Bastien  ⭐ 14/42  5/18 tâches du dimanche
+                       ↑ Uniquement tâches d'aujourd'hui
+```
+
+**5. Migration**
+```javascript
+// Pour chaque tâche existante
+for (let task of existingTasks) {
+  for (let day = 0; day <= 6; day++) {
+    // Créer 7 copies avec dayOfWeek différent
+    createTask({ ...task, dayOfWeek: day });
+  }
+  // Supprimer l'ancienne tâche
+  deleteTask(task.id);
+}
+```
+
+---
+
+### 📋 PLAN D'IMPLÉMENTATION
+
+**Phase 1 : Structure (1h)**
+- [ ] Ajouter champ `dayOfWeek` au modèle de tâche
+- [ ] Créer variable globale `selectedDay`
+- [ ] Fonction `getCurrentDay()`
+
+**Phase 2 : Navigation (1h)**
+- [ ] Header avec navigation jours
+- [ ] Boutons rapides [Dim][Lun]...[Sam]
+- [ ] Flèches ← →
+- [ ] Bandeau "Vous consultez X" si ≠ aujourd'hui
+- [ ] Bouton "Retour à Aujourd'hui"
+
+**Phase 3 : Formulaire (1h)**
+- [ ] Ajouter checkboxes jours dans modal ajout
+- [ ] Checkbox "Tous les jours"
+- [ ] Logique création multiple
+- [ ] Boucle sur jours sélectionnés
+
+**Phase 4 : Filtrage (30min)**
+- [ ] Modifier `renderTasks()` pour filtrer par `dayOfWeek`
+- [ ] Appliquer filtre sur `selectedDay`
+
+**Phase 5 : Statistiques (30min)**
+- [ ] Modifier calcul pour compter uniquement tâches du jour
+- [ ] Ajouter "tâches du [jour]" dans affichage
+
+**Phase 6 : Migration (1h30)**
+- [ ] Créer script `migrate-to-days.js`
+- [ ] Lire toutes les tâches existantes
+- [ ] Dupliquer ×7 avec `dayOfWeek`
+- [ ] Logs détaillés
+- [ ] Dry-run mode (simulation)
+- [ ] Instructions d'exécution
+
+**Phase 7 : Tests (45min)**
+- [ ] Déployer sur TEST
+- [ ] Tester navigation
+- [ ] Tester création avec jours
+- [ ] Tester filtrage
+- [ ] Exécuter migration sur TEST
+- [ ] Vérifier résultats
+
+---
+
+### ⏱️ ESTIMATION FINALE
+
+| Phase | Temps |
+|-------|-------|
+| 1. Structure | 30 min |
+| 2. Navigation | 1h |
+| 3. Formulaire | 1h |
+| 4. Filtrage | 30 min |
+| 5. Statistiques | 30 min |
+| 6. Migration | 1h30 |
+| 7. Tests | 45 min |
+| **TOTAL** | **~5h45** |
+
+---
+
+### 🚀 PRÊT À COMMENCER ?
+
+**Toutes les questions ont été répondues !**
+
+**Workflow** :
+1. Je code sur la branche `feature/activites-par-jour`
+2. Je teste localement
+3. Je déploie sur **TEST** (activity-day-to-day-test)
+4. Je crée le script de migration
+5. Vous testez sur TEST
+6. Si OK → déploiement PROD
+
+**Voulez-vous que je commence l'implémentation maintenant ?**
+**Ou avez-vous encore des questions ?**
 
 ---
 
