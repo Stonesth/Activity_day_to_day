@@ -263,3 +263,7 @@ dont_commit/firestore.json
 service-account*.json
 serviceAccountKey.json
 *-service-account.json
+
+# Backups Firestore (garder localement uniquement)
+backups/*.json
+backups/*.gz
