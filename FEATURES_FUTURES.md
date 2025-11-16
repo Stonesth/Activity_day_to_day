@@ -651,3 +651,206 @@ Activity Day to Day
 1. **Haute** : Interface admin pour Reset Automatique (Phase 2)
 2. **Moyenne** : Tâches Bonus
 3. **Basse** : Système de Pénalités
+
+---
+
+## 📅 4. Activités Spécifiques par Jour de la Semaine
+
+### 🎯 Objectif Principal
+Ajouter de la granularité en permettant d'assigner des tâches/activités différentes selon les jours de la semaine, pour mieux refléter la réalité de l'organisation familiale.
+
+### 📊 Analyse du Besoin
+
+#### 🤔 Questions de Clarification à Résoudre
+
+**1. PORTÉE - Qu'entendez-vous par "activités par jour" ?**
+
+❓ **Option A : Tâches différentes selon les jours**
+- Exemple : "Sortir les poubelles" uniquement le lundi
+- Exemple : "Cours de piano" uniquement le mercredi
+- Exemple : "Sport" le mardi et jeudi
+- Les tâches s'affichent UNIQUEMENT les jours où elles sont assignées
+
+❓ **Option B : Planning hebdomadaire complet**
+- Vue calendrier avec les 7 jours de la semaine
+- Chaque jour a sa propre liste de tâches
+- Possibilité de voir la semaine complète d'un coup
+
+❓ **Option C : Récurrence avec jours spécifiques**
+- Les tâches actuelles + possibilité de définir "Actif le : [Lun] [Mar] [Mer]..."
+- Les tâches inactives n'apparaissent pas ce jour-là
+- Permet de gérer les activités régulières (cours, sport, corvées hebdo)
+
+❓ **Option D : Autre chose ?**
+- Décrivez votre vision exacte
+
+---
+
+**2. AFFICHAGE - Comment voulez-vous visualiser les activités ?**
+
+❓ **Vue actuelle (par personne) :**
+```
+👦 Bastien
+├── Tâche 1
+├── Tâche 2
+└── Tâche 3
+```
+
+❓ **Vue par jour :**
+```
+📅 Lundi 16/11
+├── 👦 Bastien : Tâche 1, Tâche 2
+├── 👧 Florent : Tâche 3
+└── 👨 Papa : Tâche 4
+```
+
+❓ **Vue calendrier semaine :**
+```
+       Lun    Mar    Mer    Jeu    Ven    Sam    Dim
+Bastien  3      2      4      3      2      1      0
+Florent  2      3      2      3      2      1      0
+Papa     5      4      6      5      4      3      2
+```
+
+❓ **Vue mixte (actuel + filtre jour) :**
+- Garder la vue actuelle par personne
+- Ajouter un sélecteur "Aujourd'hui | Lundi | Mardi | ..."
+- Filtrer les tâches selon le jour sélectionné
+
+---
+
+**3. CRÉATION - Comment créer une tâche avec jours spécifiques ?**
+
+❓ **Dans le formulaire d'ajout actuel, ajouter :**
+```
+┌─────────────────────────────────────────┐
+│ Titre : [Sortir les poubelles]          │
+│ Personne : [Bastien ▼]                  │
+│ Étoiles : [3] ⭐                         │
+│                                          │
+│ 📅 Actif les jours suivants :            │
+│ ☐ Lundi  ☑ Mardi  ☐ Mercredi           │
+│ ☐ Jeudi  ☐ Vendredi ☐ Samedi ☐ Dimanche│
+│                                          │
+│ OU                                       │
+│                                          │
+│ ☑ Tous les jours (comme actuellement)   │
+└─────────────────────────────────────────┘
+```
+
+---
+
+**4. COMPATIBILITÉ - Que faire des tâches existantes ?**
+
+❓ **Migration des tâches actuelles :**
+- Option A : Toutes les tâches existantes = actives tous les jours
+- Option B : Demander de reconfigurer chaque tâche
+- Option C : Garder deux types : "quotidien" vs "spécifique jour"
+
+---
+
+**5. RESET - Impact sur le reset quotidien ?**
+
+❓ **Le reset doit-il :**
+- Option A : Réinitialiser TOUTES les tâches chaque jour (comportement actuel)
+- Option B : Réinitialiser uniquement les tâches actives pour ce jour
+- Option C : Avoir deux modes : "Reset simple" vs "Reset intelligent par jour"
+
+---
+
+**6. STATISTIQUES - Comment compter la progression ?**
+
+❓ **Aujourd'hui on calcule :**
+```
+Bastien : 8/18 tâches complétées (44%)
+```
+
+❓ **Avec les jours, faut-il calculer :**
+- Option A : Uniquement les tâches d'aujourd'hui (ex: 3/5 tâches du mercredi)
+- Option B : La moyenne de toute la semaine
+- Option C : Les deux (stats du jour + stats de la semaine)
+
+---
+
+**7. COMPLEXITÉ - Niveau de détail souhaité ?**
+
+❓ **Niveau 1 : Simple (Rapide à implémenter)**
+- Ajouter un champ "Jours actifs" aux tâches
+- Filtrer l'affichage selon le jour actuel
+- Garder l'interface actuelle
+
+❓ **Niveau 2 : Moyen (Plus de fonctionnalités)**
+- Niveau 1 + Vue calendrier hebdomadaire
+- Statistiques par jour
+- Possibilité de voir les autres jours
+
+❓ **Niveau 3 : Complet (Grosse fonctionnalité)**
+- Planning hebdomadaire complet
+- Glisser-déposer entre les jours
+- Modèles de semaine (semaine normale, vacances, etc.)
+- Notifications "Tu as X tâches aujourd'hui"
+
+---
+
+### 💡 Cas d'Usage Réels
+
+**Pourriez-vous me donner des exemples concrets de votre quotidien ?**
+
+Exemple de réponse attendue :
+```
+- Lundi : Bastien a cours de piano → doit préparer son sac la veille
+- Mardi & Jeudi : Jour de sport → douche obligatoire après
+- Mercredi : Sortie des poubelles (uniquement mercredi soir)
+- Week-end : Tâches ménagères plus importantes
+- Etc.
+```
+
+---
+
+### 🎨 Proposition d'Implémentation (Selon vos réponses)
+
+*Cette section sera complétée après vos réponses*
+
+---
+
+### 📝 Décisions à Prendre
+
+**QUESTIONS PRIORITAIRES (Répondez dans l'ordre) :**
+
+1. **Quelle est votre vision exacte ?** (Décrivez avec vos mots)
+   - Réponse : _______________________
+
+2. **Quel niveau de complexité ?** (Niveau 1, 2 ou 3)
+   - Réponse : _______________________
+
+3. **Donnez 3-5 exemples concrets** d'activités que vous voulez gérer différemment selon les jours :
+   - Exemple 1 : _______________________
+   - Exemple 2 : _______________________
+   - Exemple 3 : _______________________
+
+4. **Vue préférée ?** (Par personne, par jour, calendrier, mixte)
+   - Réponse : _______________________
+
+5. **Les tâches existantes ?** (Tous les jours par défaut, ou reconfigurez)
+   - Réponse : _______________________
+
+---
+
+### ⏱️ Estimation Temps de Développement
+
+*Sera complété après clarification du besoin*
+
+- **Niveau 1 (Simple)** : 2-3 heures
+- **Niveau 2 (Moyen)** : 5-7 heures  
+- **Niveau 3 (Complet)** : 10-15 heures
+
+---
+
+**🚀 PROCHAINE ÉTAPE : Répondez aux questions ci-dessus pour que je puisse concevoir la solution optimale !**
+
+---
+
+**Date de création** : 16 novembre 2025  
+**Branche** : `feature/activites-par-jour`  
+**Environnement de travail** : TEST (activity-day-to-day-test)  
+**Statut** : 🔍 ANALYSE EN COURS
