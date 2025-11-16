@@ -1124,7 +1124,14 @@ Si "Ranger sa chambre" est actif Lun-Mar-Mer, comment gérer l'édition/suppress
   - ❌ Fastidieux
   - ✅ Simple techniquement
 
-**→ Laquelle préférez-vous ?** _______________
+**→ RÉPONSE : Option B - Tâches complètement indépendantes** ✅
+
+**Conséquences** :
+- ❌ Pas de lien automatique entre les tâches
+- ⚠️ Pour modifier le nom sur tous les jours : modifier manuellement chaque jour
+- ⚠️ Pour supprimer sur tous les jours : supprimer manuellement chaque jour
+- ✅ Maximum de simplicité technique
+- ✅ Maximum de flexibilité (chaque jour peut évoluer indépendamment)
 
 ---
 
@@ -1139,7 +1146,7 @@ Quand vous créez une tâche avec les jours [Lun][Mar][Mer] cochés :
 **Option B** : Créer un "template" qui génère les tâches au fur et à mesure
 - Plus complexe, pas nécessaire pour votre besoin
 
-**→ Je suppose Option A ?** _______________
+**→ RÉPONSE : OUI - Création immédiate de multiples tâches** ✅
 
 ---
 
@@ -1167,7 +1174,12 @@ Vous avez dit "OUI" à la migration automatique. Cela veut dire :
 - Nouvelles tâches : Système de jours séparés (option B)
 - Les anciennes tâches restent "tous les jours" jusqu'à ce que vous les modifiez
 
-**→ Quelle approche de migration ?** _______________
+**→ RÉPONSE : DUPLIQUER - Migration automatique × 7** ✅
+
+**Implications** :
+- ⚠️ Nombre de tâches en base sera multiplié par 7
+- ⚠️ À faire uniquement sur l'environnement TEST d'abord
+- ⚠️ Irréversible (ou difficile à annuler)
 
 ---
 
@@ -1190,7 +1202,12 @@ Actuellement, en mode admin, vous cliquez sur ✏️ pour éditer une tâche.
 - ✅ Plus logique
 - ⚠️ Nécessite le système de templateId (Question 7)
 
-**→ Laquelle préférez-vous ?** _______________
+**→ RÉPONSE : Option A - Éditer uniquement le jour actuel** ✅
+
+**Conséquences** :
+- ⚠️ Pour changer le nom sur 3 jours : éditer 3 fois manuellement
+- ✅ Simplicité maximale du code
+- ✅ Flexibilité : chaque jour peut avoir des variations
 
 ---
 
@@ -1209,62 +1226,220 @@ Même question pour la suppression.
 - ✅ Plus clair
 - ⚠️ Nécessite le système de templateId
 
+**→ RÉPONSE : Option A - Supprimer uniquement le jour actuel** ✅
+
+**Conséquences** :
+- ⚠️ Pour supprimer sur tous les jours : naviguer et supprimer chaque jour manuellement
+- ✅ Simplicité maximale du code
+- ✅ Permet de garder certains jours et supprimer d'autres
+
+---
+
+### ⏱️ Estimation Temps de Développement (FINALE)
+
+**🎯 Avec tous vos choix (tâches totalement indépendantes) :**
+
+| Tâche | Temps estimé |
+|-------|--------------|
+| 1. Structure base de données (`dayOfWeek` uniquement) | **30 min** |
+| 2. Formulaire avec checkboxes + création multiple | **1h** |
+| 3. Navigation jours (header + indicateur visuel) | **1h** |
+| 4. Filtrage par jour (simple : `dayOfWeek === currentDay`) | **30 min** |
+| 5. Migration automatique × 7 | **1h30** |
+| 6. Ajuster statistiques (comptage par jour) | **30 min** |
+| 7. Édition/Suppression (simple : pas de groupe) | **20 min** |
+| 8. Tests sur environnement TEST | **45 min** |
+| **TOTAL** | **~5h30-6h** |
+
+**📊 Niveau de complexité final : Niveau 2 (Moyen)**
+
+**Pourquoi moins de temps que prévu ?**
+- Pas de système de `templateId` (plus simple)
+- Pas d'édition/suppression groupée (plus simple)
+- Chaque tâche est totalement indépendante
+
+**Mais attention** :
+- ⚠️ Migration × 7 irréversible
+- ⚠️ Modifications manuelles répétitives si besoin de changer plusieurs jours
+
+---
+
+### 🎯 ARCHITECTURE FINALE VALIDÉE
+
+**Vos choix conduisent à cette architecture :**
+
+```javascript
+// Structure de tâche en Firestore
+{
+  id: "task_abc123",
+  title: "Ranger sa chambre",
+  assignedTo: "bastien",
+  stars: 3,
+  completed: false,
+  order: 0,
+  dayOfWeek: 1,  // ← NOUVEAU : 0=Dim, 1=Lun, 2=Mar, 3=Mer, 4=Jeu, 5=Ven, 6=Sam
+  createdAt: timestamp
+}
+```
+
+**Caractéristiques** :
+- ✅ Chaque tâche est totalement indépendante
+- ✅ Pas de lien entre tâches similaires sur différents jours
+- ✅ Édition/Suppression par jour uniquement
+- ✅ État `completed` indépendant par jour
+- ⚠️ Modifications répétitives si besoin sur plusieurs jours
+
+---
+
+### 🤔 DERNIÈRES QUESTIONS PRATIQUES (avant de coder)
+
+**QUESTION 12 : Ordre des tâches** 🟡
+
+Actuellement, vous pouvez réordonner les tâches (drag & drop).
+
+Avec les jours séparés, comment gérer l'ordre ?
+
+**Exemple** :
+- Lundi : "Ranger chambre" (ordre 1), "Devoirs" (ordre 2)
+- Mardi : "Ranger chambre" (ordre ???), "Devoirs" (ordre ???)
+
+**Option A** : Ordre indépendant par jour
+- Lundi ordre 1, Mardi ordre 5 (peuvent être différents)
+- ✅ Maximum de flexibilité
+- ⚠️ Incohérent visuellement en changeant de jour
+
+**Option B** : Même ordre pour les tâches similaires
+- Lors de la création : toutes les instances ont le même ordre initial
+- Mais peuvent être modifiées indépendamment après
+- ✅ Plus cohérent au départ
+
 **→ Laquelle préférez-vous ?** _______________
 
 ---
 
-### ⏱️ Estimation Temps de Développement (MISE À JOUR CRITIQUE)
+**QUESTION 13 : Formulaire d'édition - Affichage des jours** 🟡
 
-**⚠️ IMPORTANT : Avec l'Option B, ce n'est plus "Niveau 1 Simple"**
+Quand vous éditez une tâche du lundi, faut-il afficher qu'elle existe aussi d'autres jours ?
 
-**Estimation révisée :**
+**Option A** : Ne rien afficher
+```
+┌──────────────────────┐
+│ Éditer la Tâche       │
+├──────────────────────┤
+│ Nom : [Ranger...]    │
+│ Personne : [Bastien] │
+│ Étoiles : [3]        │
+└──────────────────────┘
+```
 
-| Tâche | Temps estimé (AVANT) | Temps estimé (MAINTENANT) |
-|-------|---------------------|---------------------------|
-| 1. Structure base de données | 15 min | **45 min** (+ templateId + dayOfWeek) |
-| 2. Formulaire avec checkboxes | 30 min | **1h** (+ logique création multiple) |
-| 3. Navigation jours | 45 min | 45 min (inchangé) |
-| 4. Filtrage par jour | 30 min | **45 min** (+ gestion tâches liées) |
-| 5. Migration | 20 min | **1h30** (+ script de duplication × 7) |
-| 6. Statistiques | 20 min | 30 min |
-| 7. Édition/Suppression groupée | - | **1h30** (+ modal + logique groupée) |
-| 8. Tests sur TEST | 30 min | **1h** |
-| **TOTAL** | **~3h** | **~6h30-7h** |
+**Option B** : Afficher un indicateur info (non modifiable)
+```
+┌──────────────────────────────────┐
+│ Éditer la Tâche (LUNDI)          │
+├──────────────────────────────────┤
+│ ℹ️ Cette tâche existe aussi :     │
+│   Mardi, Mercredi                │
+│                                  │
+│ Nom : [Ranger...]                │
+│ Personne : [Bastien]             │
+│ Étoiles : [3]                    │
+└──────────────────────────────────┘
+```
+*Note : Pas de lien technique, juste une info visuelle*
 
-**Conclusion** : Ce n'est plus "Niveau 1 Simple" mais plutôt **"Niveau 2 Moyen+"**
+**Option C** : Permettre de modifier les jours actifs
+```
+┌──────────────────────────────────┐
+│ Éditer la Tâche                  │
+├──────────────────────────────────┤
+│ Nom : [Ranger...]                │
+│ Personne : [Bastien]             │
+│ Étoiles : [3]                    │
+│                                  │
+│ 📅 Jours où cette tâche existe : │
+│ ☐ Lun ☑ Mar ☑ Mer ☐ Jeu ...     │
+│                                  │
+│ ⚠️ Cocher/décocher crée/supprime │
+│    des tâches                    │
+└──────────────────────────────────┘
+```
+
+**→ Laquelle préférez-vous ?** _______________
 
 ---
 
-### 💡 RECOMMANDATION
+**QUESTION 14 : Script de migration - Quand l'exécuter ?** 🟠
 
-**Avant de commencer à coder, répondez aux Questions 7-11 ci-dessus.**
+La migration × 7 est une opération lourde et irréversible.
 
-Ces questions sont **critiques** car elles impactent :
-- L'architecture de la base de données
-- L'interface utilisateur
-- Le temps de développement (×2 environ)
-- La complexité de maintenance
+**Proposition** :
+1. Je crée le script de migration
+2. Vous le testez d'abord sur TEST (vérifier que ça fonctionne)
+3. ENSUITE seulement, vous décidez si vous l'exécutez sur PROD
 
-**Alternative à considérer** :
-Si vous voulez vraiment l'indépendance des jours (Option B) MAIS que vous voulez aussi gérer facilement les modifications/suppressions, je recommande **fortement** d'implémenter le système de `templateId` (Question 7 - Option A).
+**OU**
 
-Cela permettra :
-- ✅ Indépendance de l'état completed par jour
-- ✅ Gestion cohérente des modifications/suppressions
-- ✅ Interface utilisateur claire
-- ⚠️ Mais augmente le temps de développement à ~7h
+Voulez-vous une option dans l'interface admin pour déclencher la migration manuellement ?
+```
+[Admin] > [Migration] > [Migrer vers système par jour (⚠️ IRRÉVERSIBLE)]
+```
+
+**→ Comment voulez-vous gérer la migration ?** _______________
 
 ---
 
-**🚀 PROCHAINE ÉTAPE : Répondez aux Questions 7-11 ci-dessus**
+**QUESTION 15 : Combien de tâches actuellement ?** 🟠
 
-Ces 5 nouvelles questions découlent de votre choix de l'**Option B** (tâches indépendantes par jour).
+Pour estimer l'impact de la migration × 7 :
 
-Une fois que j'aurai ces réponses, je pourrai :
-1. Finaliser l'architecture technique
-2. Affiner le design et les mockups
-3. Commencer l'implémentation sur TEST
-4. Vous faire tester au fur et à mesure
+**Question directe** : Combien de tâches avez-vous actuellement dans votre base PRODUCTION ?
+- Environ : _____ tâches
+
+Cela me permettra de vous dire :
+- Nombre de tâches après migration : _____ × 7 = _____ tâches
+- Temps de migration estimé
+- Risques éventuels
+
+---
+
+**QUESTION 16 : Nom de la tâche - Besoin d'indication du jour ?** 🟡
+
+Avec les tâches séparées, peut-être voulez-vous différencier visuellement ?
+
+**Exemple** :
+- Tâche créée : "Ranger sa chambre"
+- Après migration, les 7 tâches ont le même titre : "Ranger sa chambre"
+
+**Question** : Voulez-vous ajouter automatiquement le jour dans le titre ?
+
+**Option A** : Non, garder le même titre
+- "Ranger sa chambre" (lundi)
+- "Ranger sa chambre" (mardi)
+- ✅ Plus propre visuellement
+
+**Option B** : Ajouter le jour dans le titre
+- "Ranger sa chambre [Lun]"
+- "Ranger sa chambre [Mar]"
+- ✅ Plus facile à distinguer en admin
+
+**Option C** : Ne rien faire automatiquement, mais vous permettre de le faire manuellement si besoin
+
+**→ Laquelle préférez-vous ?** _______________
+
+---
+
+### 🚀 RÉSUMÉ - PRÊT À CODER ?
+
+**Une fois que vous répondez aux Questions 12-16** (les 5 dernières questions pratiques), je serai prêt à :
+
+1. ✅ Commencer l'implémentation sur **TEST**
+2. ✅ Créer la structure de base de données
+3. ✅ Modifier le formulaire d'ajout
+4. ✅ Ajouter la navigation des jours
+5. ✅ Créer le script de migration
+6. ✅ Tester avec vous sur TEST
+
+**Estimation finale : ~5h30-6h de développement**
 
 ---
 
