@@ -150,10 +150,13 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 
-    <!-- Config Firebase TEST -->
+    <!-- Config Firebase AUTO-DÉTECTION -->
     <script>
+        // Détecter l'environnement basé sur l'URL
+        const isTestEnvironment = window.location.hostname.includes('activity-day-to-day-test');
+        
         // Configuration Firebase TEST
-        const firebaseConfig = {
+        const testConfig = {
             apiKey: "AIzaSyAcofDWIySvjHcW0TQYmF7gIdE4oY8B6hE",
             authDomain: "activity-day-to-day-test.firebaseapp.com",
             projectId: "activity-day-to-day-test",
@@ -161,6 +164,19 @@
             messagingSenderId: "880195046237",
             appId: "1:880195046237:web:b22ea3bf2c28e4f3d54c42"
         };
+        
+        // Configuration Firebase PRODUCTION
+        const prodConfig = {
+            apiKey: "AIzaSyBIggEt3Mv_L5E_1OpsuHIuuvAXCYcKzAw",
+            authDomain: "activity-day-to-day.firebaseapp.com",
+            projectId: "activity-day-to-day",
+            storageBucket: "activity-day-to-day.firebasestorage.app",
+            messagingSenderId: "44469659985",
+            appId: "1:44469659985:web:778b21561999f67a5a8b70"
+        };
+        
+        // Choisir la bonne configuration
+        const firebaseConfig = isTestEnvironment ? testConfig : prodConfig;
 
         // Initialiser Firebase
         firebase.initializeApp(firebaseConfig);
