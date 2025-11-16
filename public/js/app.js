@@ -19,6 +19,24 @@ let unsubscribe = null;
 let isAdminMode = false;
 const ADMIN_PIN = '1571';
 
+// ===== NOUVELLES VARIABLES POUR LES JOURS =====
+let selectedDay = null; // null = aujourd'hui, sinon 0-6 (Dim-Sam)
+const dayNames = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+const dayNamesShort = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+
+// Fonctions utilitaires pour les jours
+function getCurrentDay() {
+    return selectedDay !== null ? selectedDay : new Date().getDay();
+}
+
+function getTodayDay() {
+    return new Date().getDay();
+}
+
+function isToday() {
+    return selectedDay === null || selectedDay === getTodayDay();
+}
+
 // Initialisation au chargement de la page
 document.addEventListener('DOMContentLoaded', () => {
     initializeApp();
@@ -33,6 +51,9 @@ function initializeApp() {
 
     // Initialiser les écouteurs d'événements
     setupEventListeners();
+    
+    // Initialiser la navigation des jours
+    initializeDayNavigation();
     
     // Charger les tâches
     loadTasks();
@@ -97,7 +118,22 @@ async function handleTaskSubmit(e) {
     );
     const nextOrder = existingTasksSnapshot.size;
     
-    const taskData = {
+    // ===== NOUVEAU : Récupérer les jours sélectionnés =====
+    const selectedDays = [];
+    for (let i = 0; i <= 6; i++) {
+        const dayCheckbox = document.getElementById(`day${i}`);
+        if (dayCheckbox && dayCheckbox.checked) {
+            selectedDays.push(i);
+        }
+    }
+    
+    // Si aucun jour sélectionné, erreur
+    if (selectedDays.length === 0) {
+        showNotification('Veuillez sélectionner au moins un jour', 'error');
+        return;
+    }
+    
+    const baseTaskData = {
         title: document.getElementById('taskTitle').value.trim(),
         description: document.getElementById('taskDescription').value.trim(),
         assignedTo: assignedTo,
@@ -112,13 +148,22 @@ async function handleTaskSubmit(e) {
     };
     
     try {
-        await addDoc(collection(window.db, 'tasks'), taskData);
+        // Créer une tâche pour chaque jour sélectionné
+        const promises = selectedDays.map((day) => {
+            return addDoc(collection(window.db, 'tasks'), {
+                ...baseTaskData,
+                dayOfWeek: day
+            });
+        });
+        
+        await Promise.all(promises);
         
         // Réinitialiser le formulaire
         e.target.reset();
         toggleForm();
         
-        showNotification('Tâche ajoutée avec succès !', 'success');
+        const dayText = selectedDays.length === 7 ? 'tous les jours' : `${selectedDays.length} jour(s)`;
+        showNotification(`Tâche ajoutée pour ${dayText} !`, 'success');
     } catch (error) {
         console.error('Erreur lors de l\'ajout de la tâche:', error);
         showNotification('Erreur lors de l\'ajout de la tâche', 'error');
@@ -158,6 +203,17 @@ function loadTasks() {
 
 // Afficher les tâches
 function renderTasks(tasks) {
+    // ===== NOUVEAU : Filtrer par jour sélectionné =====
+    const currentDayValue = getCurrentDay();
+    const tasksForDay = tasks.filter(task => {
+        // Si la tâche n'a pas de dayOfWeek (anciennes tâches), la garder
+        if (task.dayOfWeek === undefined || task.dayOfWeek === null) {
+            return true;
+        }
+        // Sinon, vérifier si c'est le bon jour
+        return task.dayOfWeek === currentDayValue;
+    });
+    
     // Grouper les tâches par personne
     const tasksByPerson = {
         papa: [],
@@ -166,7 +222,7 @@ function renderTasks(tasks) {
         florent: []
     };
     
-    tasks.forEach(task => {
+    tasksForDay.forEach(task => {
         if (tasksByPerson[task.assignedTo]) {
             tasksByPerson[task.assignedTo].push(task);
         }
@@ -224,7 +280,9 @@ function renderPersonTasks(person, tasks) {
     const calculatedMax = normalStarsMax + bonusStarsMax;
     const starsMax = manualMax !== null ? manualMax : calculatedMax;
     
-    section.querySelector('.total-count').textContent = totalCount;
+    // Afficher le nom du jour dans les statistiques
+    const currentDayName = dayNames[getCurrentDay()];
+    section.querySelector('.total-count').textContent = `${totalCount} tâches du ${currentDayName.toLowerCase()}`;
     section.querySelector('.completed-count').textContent = completedCount;
     section.querySelector('.stars-count').textContent = starsEarned;
     
@@ -853,6 +911,108 @@ function disableAdminMode() {
     
     showNotification('🔒 Mode Admin désactivé', 'info');
 }
+
+// ===== NAVIGATION DES JOURS =====
+
+// Changer de jour
+window.changeDay = function(dayNumber) {
+    selectedDay = dayNumber;
+    updateDayDisplay();
+    loadTasks(); // Recharger les tâches pour le nouveau jour
+};
+
+// Aller au jour précédent
+window.previousDay = function() {
+    const currentDayValue = getCurrentDay();
+    const newDay = (currentDayValue - 1 + 7) % 7;
+    changeDay(newDay);
+};
+
+// Aller au jour suivant
+window.nextDay = function() {
+    const currentDayValue = getCurrentDay();
+    const newDay = (currentDayValue + 1) % 7;
+    changeDay(newDay);
+};
+
+// Retour à aujourd'hui
+window.goToToday = function() {
+    selectedDay = null;
+    updateDayDisplay();
+    loadTasks();
+};
+
+// Mettre à jour l'affichage de la navigation des jours
+function updateDayDisplay() {
+    const currentDayValue = getCurrentDay();
+    const todayValue = getTodayDay();
+    
+    // Mettre à jour le titre principal
+    const dayTitle = document.getElementById('dayNavigationTitle');
+    if (dayTitle) {
+        const currentDate = new Date();
+        const dateStr = currentDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'numeric', year: 'numeric' });
+        dayTitle.innerHTML = `📅 ${dayNames[currentDayValue].toUpperCase()} ${dateStr}`;
+    }
+    
+    // Mettre à jour les boutons de navigation (prev/next)
+    const prevDayName = document.getElementById('prevDayName');
+    const nextDayName = document.getElementById('nextDayName');
+    if (prevDayName) {
+        const prevDay = (currentDayValue - 1 + 7) % 7;
+        prevDayName.textContent = dayNames[prevDay];
+    }
+    if (nextDayName) {
+        const nextDay = (currentDayValue + 1) % 7;
+        nextDayName.textContent = dayNames[nextDay];
+    }
+    
+    // Mettre à jour les boutons rapides (actif/inactif)
+    for (let i = 0; i <= 6; i++) {
+        const btn = document.getElementById(`dayBtn${i}`);
+        if (btn) {
+            if (i === currentDayValue) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        }
+    }
+    
+    // Afficher/masquer le bandeau "Vous consultez"
+    const warningBanner = document.getElementById('dayWarningBanner');
+    if (warningBanner) {
+        if (!isToday()) {
+            warningBanner.classList.remove('hidden');
+            const warningDayName = document.getElementById('warningDayName');
+            const warningTodayName = document.getElementById('warningTodayName');
+            if (warningDayName) {
+                const currentDate = new Date();
+                const dateStr = currentDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'numeric' });
+                warningDayName.textContent = `${dayNames[currentDayValue]} ${dateStr}`;
+            }
+            if (warningTodayName) {
+                warningTodayName.textContent = dayNames[todayValue];
+            }
+        } else {
+            warningBanner.classList.add('hidden');
+        }
+    }
+}
+
+// Initialiser la navigation des jours
+function initializeDayNavigation() {
+    // Mettre à jour l'affichage initial
+    updateDayDisplay();
+}
+
+// Fonction pour cocher/décocher tous les jours dans le formulaire
+window.toggleAllDays = function(checkbox) {
+    const dayCheckboxes = document.querySelectorAll('.day-checkbox');
+    dayCheckboxes.forEach(cb => {
+        cb.checked = checkbox.checked;
+    });
+};
 
 // Ajouter les animations CSS
 const style = document.createElement('style');

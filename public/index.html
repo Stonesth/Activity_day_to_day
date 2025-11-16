@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tableau des Tâches Familiales - Dynamique</title>
     <link rel="stylesheet" href="css/styles.css?v=4.0">
+    <link rel="stylesheet" href="css/days.css?v=1.0">
 </head>
 <body>
     <div class="container">
@@ -12,6 +13,40 @@
             <h1>📋 Tâches Familiales</h1>
             <p>Gérez vos tâches quotidiennes en famille</p>
         </header>
+
+        <!-- Navigation des Jours -->
+        <div class="day-navigation">
+            <div class="day-nav-main">
+                <button class="day-nav-btn" onclick="previousDay()" title="Jour précédent">
+                    ← <span id="prevDayName">Samedi</span>
+                </button>
+                <h2 id="dayNavigationTitle" class="day-nav-title">📅 DIMANCHE 16/11/2025</h2>
+                <button class="day-nav-btn" onclick="nextDay()" title="Jour suivant">
+                    <span id="nextDayName">Lundi</span> →
+                </button>
+            </div>
+            <div class="day-nav-quick">
+                <button id="dayBtn0" class="day-quick-btn" onclick="changeDay(0)">Dim</button>
+                <button id="dayBtn1" class="day-quick-btn" onclick="changeDay(1)">Lun</button>
+                <button id="dayBtn2" class="day-quick-btn" onclick="changeDay(2)">Mar</button>
+                <button id="dayBtn3" class="day-quick-btn" onclick="changeDay(3)">Mer</button>
+                <button id="dayBtn4" class="day-quick-btn" onclick="changeDay(4)">Jeu</button>
+                <button id="dayBtn5" class="day-quick-btn" onclick="changeDay(5)">Ven</button>
+                <button id="dayBtn6" class="day-quick-btn" onclick="changeDay(6)">Sam</button>
+            </div>
+        </div>
+
+        <!-- Bandeau d'avertissement si pas aujourd'hui -->
+        <div id="dayWarningBanner" class="day-warning-banner hidden">
+            <div class="warning-content">
+                <span class="warning-icon">⚠️</span>
+                <div class="warning-text">
+                    <strong>VOUS CONSULTEZ : <span id="warningDayName">LUNDI 17/11</span></strong><br>
+                    <small>(Aujourd'hui = <span id="warningTodayName">Dimanche</span> 16/11)</small>
+                </div>
+                <button class="btn-today" onclick="goToToday()">Retour à Aujourd'hui</button>
+            </div>
+        </div>
 
         <!-- Filtres -->
         <div class="filters">
@@ -77,6 +112,50 @@
                         <option value="hebdomadaire">Hebdomadaire</option>
                         <option value="mensuel">Mensuel</option>
                     </select>
+                </div>
+                
+                <!-- NOUVEAU : Sélection des jours -->
+                <div class="form-group">
+                    <label>📅 Jours actifs *</label>
+                    <div class="days-checkboxes">
+                        <label class="day-checkbox-label">
+                            <input type="checkbox" id="day1" class="day-checkbox" checked>
+                            <span>Lun</span>
+                        </label>
+                        <label class="day-checkbox-label">
+                            <input type="checkbox" id="day2" class="day-checkbox" checked>
+                            <span>Mar</span>
+                        </label>
+                        <label class="day-checkbox-label">
+                            <input type="checkbox" id="day3" class="day-checkbox" checked>
+                            <span>Mer</span>
+                        </label>
+                        <label class="day-checkbox-label">
+                            <input type="checkbox" id="day4" class="day-checkbox" checked>
+                            <span>Jeu</span>
+                        </label>
+                        <label class="day-checkbox-label">
+                            <input type="checkbox" id="day5" class="day-checkbox" checked>
+                            <span>Ven</span>
+                        </label>
+                        <label class="day-checkbox-label">
+                            <input type="checkbox" id="day6" class="day-checkbox" checked>
+                            <span>Sam</span>
+                        </label>
+                        <label class="day-checkbox-label">
+                            <input type="checkbox" id="day0" class="day-checkbox" checked>
+                            <span>Dim</span>
+                        </label>
+                    </div>
+                    <div class="form-group" style="margin-top: 10px;">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="allDays" checked onclick="toggleAllDays(this)">
+                            ✅ Tous les jours
+                        </label>
+                    </div>
+                    <small style="color: #666; font-size: 0.9em; margin-top: 5px; display: block;">
+                        Sélectionnez les jours où cette tâche doit apparaître
+                    </small>
                 </div>
                 
                 <div class="form-group">
