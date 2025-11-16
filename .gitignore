@@ -258,3 +258,8 @@ ui-debug.log
 
 # Firebase
 dont_commit/firestore.json
+
+# Service Account Keys (NE JAMAIS COMMITER!)
+service-account*.json
+serviceAccountKey.json
+*-service-account.json

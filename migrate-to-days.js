@@ -16,6 +16,8 @@
 
 const admin = require('firebase-admin');
 const readline = require('readline');
+const fs = require('fs');
+const path = require('path');
 
 // Configuration
 const DRY_RUN = process.argv.includes('--dry-run');
@@ -41,9 +43,76 @@ if (DRY_RUN) {
     console.log('   Les modifications seront PERMANENTES\n');
 }
 
-// Initialiser Firebase Admin
+// Lire le projet Firebase actif depuis .firebaserc
+let projectId;
 try {
-    admin.initializeApp();
+    const firebaserc = JSON.parse(fs.readFileSync(path.join(__dirname, '.firebaserc'), 'utf8'));
+    const activeAlias = process.env.FIREBASE_PROJECT || 'default';
+    
+    // Essayer de trouver le projet actif
+    if (firebaserc.projects && firebaserc.projects[activeAlias]) {
+        projectId = firebaserc.projects[activeAlias];
+    } else if (firebaserc.projects && firebaserc.projects.default) {
+        projectId = firebaserc.projects.default;
+    }
+    
+    if (!projectId) {
+        console.error('❌ Erreur: Impossible de trouver le projet Firebase actif');
+        console.log('💡 Exécutez "firebase use" pour voir le projet actif\n');
+        process.exit(1);
+    }
+    
+    console.log(`📦 Projet Firebase: ${projectId}\n`);
+} catch (error) {
+    console.error('❌ Erreur lors de la lecture de .firebaserc:', error.message);
+    process.exit(1);
+}
+
+// Initialiser Firebase Admin avec Service Account
+try {
+    // Chercher le fichier de service account dans le répertoire courant
+    const serviceAccountFiles = [
+        'service-account-test.json',
+        'service-account.json',
+        'serviceAccountKey.json'
+    ];
+    
+    let serviceAccountPath = null;
+    for (const file of serviceAccountFiles) {
+        const fullPath = path.join(__dirname, file);
+        if (fs.existsSync(fullPath)) {
+            serviceAccountPath = fullPath;
+            break;
+        }
+    }
+    
+    // Ou utiliser la variable d'environnement
+    if (!serviceAccountPath && process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+        serviceAccountPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+    }
+    
+    if (!serviceAccountPath || !fs.existsSync(serviceAccountPath)) {
+        console.error('❌ Erreur: Fichier de service account introuvable\n');
+        console.log('💡 Solution:');
+        console.log('   1. Allez sur: https://console.firebase.google.com/project/' + projectId);
+        console.log('   2. ⚙️  > Project Settings > Service Accounts');
+        console.log('   3. "Generate new private key"');
+        console.log('   4. Sauvegardez le fichier JSON téléchargé dans ce dossier');
+        console.log('      Nommez-le: service-account-test.json\n');
+        console.log('   OU définissez la variable d\'environnement:');
+        console.log('   export GOOGLE_APPLICATION_CREDENTIALS="/chemin/vers/service-account.json"\n');
+        process.exit(1);
+    }
+    
+    console.log(`🔑 Service Account: ${path.basename(serviceAccountPath)}\n`);
+    
+    const serviceAccount = require(serviceAccountPath);
+    
+    admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+        projectId: projectId
+    });
+    
     console.log('✅ Firebase Admin initialisé\n');
 } catch (error) {
     console.error('❌ Erreur lors de l\'initialisation Firebase:', error.message);
