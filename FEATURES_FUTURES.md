@@ -807,32 +807,301 @@ Exemple de réponse attendue :
 
 ---
 
-### 🎨 Proposition d'Implémentation (Selon vos réponses)
+### 🎨 Proposition d'Implémentation (Niveau 1 - Simple)
 
-*Cette section sera complétée après vos réponses*
+#### 📐 Design de l'Interface
+
+**NAVIGATION DES JOURS (en haut de page) :**
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  ← Samedi | 📅 DIMANCHE 16/11/2025 | Lundi →                    │
+│                                                                   │
+│  [Dim] [Lun] [Mar] [Mer] [Jeu] [Ven] [Sam]  (← Boutons rapides) │
+│   ✓                                                               │
+└──────────────────────────────────────────────────────────────────┘
+
+👦 Bastien [Reset] ⭐ 14/42  5/18 tâches du dimanche
+[➕ Ajouter une tâche]
+  
+  ✅ Ranger sa chambre              ⭐⭐⭐
+  ⭕ Préparer son sac pour lundi    ⭐⭐
+  ⭕ Lire 20 minutes                ⭐⭐⭐⭐
+  ...
+```
+
+**FORMULAIRE D'AJOUT DE TÂCHE (modifié) :**
+```
+┌──────────────────────────────────────────────────┐
+│        ➕ Ajouter une Tâche                      │
+├──────────────────────────────────────────────────┤
+│ Nom : [Sortir les poubelles]                     │
+│ Personne : [Bastien ▼]                           │
+│ Étoiles : [3] ⭐                                  │
+│                                                   │
+│ 📅 Jours actifs :                                 │
+│ ☐ Lun  ☐ Mar  ☑ Mer  ☐ Jeu  ☐ Ven  ☐ Sam  ☐ Dim │
+│                                                   │
+│ ☑ Tous les jours (cocher/décocher tout)          │
+│                                                   │
+│ [Annuler] [Ajouter]                               │
+└──────────────────────────────────────────────────┘
+```
 
 ---
 
-### 📝 Décisions à Prendre
+#### 🔧 Modifications Techniques
 
-**QUESTIONS PRIORITAIRES (Répondez dans l'ordre) :**
+**1. Base de Données (Firestore)**
+Ajouter un nouveau champ `activeDays` aux tâches :
 
-1. **Quelle est votre vision exacte ?** (Décrivez avec vos mots)
-   - Réponse : _______________________
+```javascript
+// Structure actuelle
+{
+  id: "task_001",
+  title: "Ranger sa chambre",
+  assignedTo: "bastien",
+  stars: 3,
+  completed: false,
+  order: 0,
+  createdAt: timestamp
+}
 
-2. **Quel niveau de complexité ?** (Niveau 1, 2 ou 3)
-   - Réponse : _______________________
+// Nouvelle structure
+{
+  id: "task_001",
+  title: "Ranger sa chambre",
+  assignedTo: "bastien",
+  stars: 3,
+  completed: false,
+  order: 0,
+  activeDays: [0, 1, 2, 3, 4, 5, 6],  // ← NOUVEAU : 0=Dim, 1=Lun, ... 6=Sam
+  createdAt: timestamp
+}
+```
+
+**2. Filtrage des Tâches**
+```javascript
+// Obtenir le jour actuel (0-6)
+const currentDay = new Date().getDay();
+
+// Filtrer les tâches pour n'afficher que celles du jour
+tasks.filter(task => {
+  // Si activeDays n'existe pas (anciennes tâches) → tous les jours
+  if (!task.activeDays || task.activeDays.length === 0) {
+    return true;
+  }
+  // Sinon, vérifier si le jour actuel est dans activeDays
+  return task.activeDays.includes(currentDay);
+});
+```
+
+**3. Navigation entre les Jours**
+```javascript
+// Variable globale pour le jour sélectionné
+let selectedDay = new Date().getDay(); // Par défaut = aujourd'hui
+
+// Fonction pour changer de jour
+function changeDay(newDay) {
+  selectedDay = newDay;
+  renderTasks(); // Re-afficher avec le nouveau filtre
+}
+```
+
+---
+
+#### 🤔 Questions de Clarification Supplémentaires
+
+**QUESTION 1 : Gestion de l'état "completed"**
+
+Vous dites : "Je ferai une copie des tâches dans les jours où elle devront être."
+
+❓ **Clarification nécessaire** : Comment gérer l'état "coché/décoché" ?
+
+**Scénario** : 
+- Lundi : Bastien a la tâche "Ranger sa chambre" (actif Lun, Mar, Mer)
+- Lundi matin : Il coche la tâche ✅
+- Mardi : La tâche réapparaît (même tâche, actif Lun-Mar-Mer)
+
+**Options** :
+
+**Option A : État partagé** (1 tâche, plusieurs jours)
+- La tâche est la même pour Lun-Mar-Mer
+- Si cochée lundi, elle reste cochée mardi et mercredi
+- Reset quotidien à 6h : tout redémarre
+- ✅ Plus simple à implémenter
+- ❌ Si coché lundi, déjà coché mardi (pas de motivation pour refaire)
+
+**Option B : État indépendant par jour** (Copie réelle)
+- Créer 3 tâches séparées : "Ranger (Lun)", "Ranger (Mar)", "Ranger (Mer)"
+- Chaque jour est indépendant
+- Si cochée lundi, toujours déchochée mardi (nouvelle journée)
+- ✅ Chaque jour est une nouvelle opportunité
+- ❌ Plus complexe (beaucoup plus de tâches en base)
+
+**Option C : État quotidien avec historique**
+- 1 tâche avec champ `completedDays: [1, 3, 5]` (jours où elle a été cochée)
+- Lundi coché → sauvegardé dans completedDays
+- Mardi : vérifier si 2 (mardi) est dans completedDays → non → afficher décoché
+- Reset quotidien : vider completedDays
+- ✅ Bon compromis
+- ⚠️ Complexité moyenne
+
+**→ Laquelle préférez-vous ?**
+
+---
+
+**QUESTION 2 : Navigation - Indicateur visuel**
+
+Quand vous naviguez vers un autre jour (ex: voir lundi alors qu'on est dimanche), comment indiquer qu'on n'est PAS sur aujourd'hui ?
+
+**Proposition** :
+```
+┌──────────────────────────────────────────────────┐
+│  ⚠️ VOUS CONSULTEZ : LUNDI 17/11                 │
+│  (Aujourd'hui = Dimanche 16/11)                   │
+│  [Retour à Aujourd'hui]                           │
+└──────────────────────────────────────────────────┘
+```
+
+**→ Cette approche vous convient ?**
+
+---
+
+**QUESTION 3 : Modification d'une tâche existante**
+
+Si vous modifiez une tâche (ex: changer les jours actifs de Lun-Mer-Ven à Lun-Mar-Mer), que se passe-t-il ?
+
+**Option A** : La modification s'applique immédiatement
+- La tâche disparaît/apparaît selon les nouveaux jours
+
+**Option B** : Demander confirmation si changement de jours
+
+**→ Laquelle préférez-vous ?**
+
+---
+
+**QUESTION 4 : Affichage du jour dans le titre de la tâche**
+
+Actuellement : 
+```
+✅ Ranger sa chambre  ⭐⭐⭐
+```
+
+Avec les jours, voulez-vous afficher quels jours la tâche est active ?
+
+**Option A** : Ne rien afficher (comme actuellement)
+```
+✅ Ranger sa chambre  ⭐⭐⭐
+```
+
+**Option B** : Afficher les jours sous la tâche
+```
+✅ Ranger sa chambre  ⭐⭐⭐
+   📅 Lun, Mar, Mer, Jeu, Ven
+```
+
+**Option C** : Afficher une icône si tâche récurrente
+```
+✅ Ranger sa chambre  🔁 ⭐⭐⭐  (← icône récurrence)
+```
+
+**→ Laquelle préférez-vous ?**
+
+---
+
+**QUESTION 5 : Migration des tâches existantes**
+
+Vous avez dit "Option A : toutes les tâches existantes = actives tous les jours"
+
+**Confirmation** : Au déploiement, toutes les tâches actuelles auront automatiquement `activeDays: [0,1,2,3,4,5,6]` (tous les jours) ?
+
+**→ C'est bien ça ?**
+
+---
+
+**QUESTION 6 : Statistiques dans le header**
+
+Actuellement :
+```
+👦 Bastien  ⭐ 14/42  5/18 tâches
+```
+
+Avec les jours :
+```
+👦 Bastien  ⭐ 14/42  5/18 tâches du dimanche
+                       ↑ Uniquement les tâches actives aujourd'hui
+```
+
+**→ C'est bien ce que vous voulez ?**
+
+---
+
+### ⏱️ Estimation Temps de Développement (Mise à jour)
+
+**Avec vos réponses (Niveau 1 - Simple) :**
+
+| Tâche | Temps estimé |
+|-------|--------------|
+| 1. Ajouter champ `activeDays` en base | 15 min |
+| 2. Modifier formulaire d'ajout (checkboxes jours) | 30 min |
+| 3. Ajouter navigation des jours (header) | 45 min |
+| 4. Implémenter filtrage par jour | 30 min |
+| 5. Migration automatique tâches existantes | 20 min |
+| 6. Ajuster statistiques (comptage par jour) | 20 min |
+| 7. Tests sur environnement TEST | 30 min |
+| **TOTAL** | **~3h** |
+
+---
+
+**🚀 PROCHAINE ÉTAPE : Répondez aux 6 questions de clarification ci-dessus**
+
+Une fois que j'aurai ces réponses, je pourrai :
+1. Affiner le design
+2. Commencer l'implémentation sur TEST
+3. Vous faire tester au fur et à mesure
+
+---
+
+### 📝 Décisions Prises (16 novembre 2025)
+
+**RÉPONSES UTILISATEUR :**
+
+1. **Quelle est votre vision exacte ?**
+   - ✅ **Option A** : Tâches différentes selon les jours
+   - ✅ **PLUS** : Chaque jour a sa propre liste de tâches
+   - ✅ Les tâches seront **copiées** dans les jours où elles doivent être faites
+   - ✅ Possibilité de voir la semaine complète, mais **par défaut afficher le jour actuel uniquement**
+   - Exemple : Aujourd'hui dimanche, on voit uniquement les tâches du dimanche
+
+2. **Quel niveau de complexité ?**
+   - ✅ **Niveau 1 : Simple** (2-3 heures)
+   - Ajouter un champ "Jours actifs" aux tâches
+   - Filtrer l'affichage selon le jour actuel
+   - Garder l'interface actuelle
 
 3. **Donnez 3-5 exemples concrets** d'activités que vous voulez gérer différemment selon les jours :
-   - Exemple 1 : _______________________
-   - Exemple 2 : _______________________
-   - Exemple 3 : _______________________
+   - Exemple 1 : *(À compléter)*
+   - Exemple 2 : *(À compléter)*
+   - Exemple 3 : *(À compléter)*
 
-4. **Vue préférée ?** (Par personne, par jour, calendrier, mixte)
-   - Réponse : _______________________
+4. **Vue préférée ?**
+   - ✅ **Garder l'affichage actuel** (par personne : Papa, Maman, Bastien, Florent)
+   - ✅ **Ajouter une navigation** entre les jours de la semaine
+   - ✅ **Par défaut** : Afficher le jour actuel (ex: aujourd'hui = dimanche)
+   - Possibilité de naviguer vers les autres jours
 
-5. **Les tâches existantes ?** (Tous les jours par défaut, ou reconfigurez)
-   - Réponse : _______________________
+5. **Les tâches existantes ?**
+   - ✅ **Option A** : Toutes les tâches existantes = actives tous les jours (migration automatique)
+
+6. **Reset quotidien ?**
+   - ✅ **Option A** : Réinitialiser TOUTES les tâches chaque jour (comportement actuel conservé)
+
+7. **Statistiques ?**
+   - ✅ **Option A** : Uniquement les tâches d'aujourd'hui (ex: 3/5 tâches du dimanche)
+
+8. **Création de tâche ?**
+   - ✅ Formulaire avec **checkboxes pour chaque jour** [Lun] [Mar] [Mer] [Jeu] [Ven] [Sam] [Dim]
+   - ✅ Option "Tous les jours" pour sélectionner rapidement tous les jours
 
 ---
 
