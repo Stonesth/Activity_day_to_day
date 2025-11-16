@@ -1,5 +1,7 @@
 {
   "projects": {
-    "default": "activity-day-to-day"
+    "default": "activity-day-to-day",
+    "test": "activity-day-to-day-test",
+    "production": "activity-day-to-day"
   }
 }
