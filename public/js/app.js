@@ -283,27 +283,26 @@ function renderPersonTasks(person, tasks) {
     // Total des étoiles (pour affichage) : positives - pénalités
     const starsEarned = Math.max(0, normalStarsEarned + bonusStarsEarned - penaltyStars);
     
-    // Max manuel : récupérer depuis localStorage ou utiliser le calculé comme défaut
-    const manualMax = getPersonMaxStars(person);
+    // Calculer le max UNIQUEMENT pour les tâches du jour actuel
     const calculatedMax = normalStarsMax + bonusStarsMax;
-    const starsMax = manualMax !== null ? manualMax : calculatedMax;
+    const starsMax = calculatedMax;
     
     // Afficher le nom du jour dans les statistiques
     const currentDayName = dayNames[getCurrentDay()];
-    section.querySelector('.total-count').textContent = `${totalCount} tâches du ${currentDayName.toLowerCase()}`;
+    section.querySelector('.total-count').textContent = `${totalCount} tâche(s) - ${currentDayName}`;
     section.querySelector('.completed-count').textContent = completedCount;
     section.querySelector('.stars-count').textContent = starsEarned;
     
-    // Mettre à jour le champ input avec le max (manuel ou calculé)
-    const maxInput = section.querySelector('.stars-max-input');
-    if (maxInput) {
-        maxInput.value = starsMax;
-    }
-    
-    // Mettre à jour aussi le span d'affichage
+    // Mettre à jour le span d'affichage avec le max du jour
     const maxDisplay = section.querySelector('.stars-max-display');
     if (maxDisplay) {
         maxDisplay.textContent = starsMax;
+    }
+    
+    // Masquer l'input manuel car on utilise le calcul automatique par jour
+    const maxInput = section.querySelector('.stars-max-input');
+    if (maxInput) {
+        maxInput.style.display = 'none';
     }
     
     // Calculer et mettre à jour la barre de progression avec système manuel simple
