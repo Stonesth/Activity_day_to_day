@@ -946,7 +946,13 @@ Vous dites : "Je ferai une copie des tâches dans les jours où elle devront êt
 - ✅ Bon compromis
 - ⚠️ Complexité moyenne
 
-**→ Laquelle préférez-vous ?**
+**→ RÉPONSE : Option B - État indépendant par jour** ✅
+
+**Implications importantes** :
+- Une tâche "Ranger chambre" active Lun-Mar-Mer = 3 tâches distinctes en base
+- Chaque jour a son propre état coché/décoché
+- Lundi coché ne veut pas dire mardi coché
+- ⚠️ Augmentation du nombre de tâches en base
 
 ---
 
@@ -963,7 +969,7 @@ Quand vous naviguez vers un autre jour (ex: voir lundi alors qu'on est dimanche)
 └──────────────────────────────────────────────────┘
 ```
 
-**→ Cette approche vous convient ?**
+**→ RÉPONSE : OUI** ✅
 
 ---
 
@@ -976,7 +982,7 @@ Si vous modifiez une tâche (ex: changer les jours actifs de Lun-Mer-Ven à Lun-
 
 **Option B** : Demander confirmation si changement de jours
 
-**→ Laquelle préférez-vous ?**
+**→ RÉPONSE : Option A - Modification immédiate** ✅
 
 ---
 
@@ -1005,7 +1011,7 @@ Avec les jours, voulez-vous afficher quels jours la tâche est active ?
 ✅ Ranger sa chambre  🔁 ⭐⭐⭐  (← icône récurrence)
 ```
 
-**→ Laquelle préférez-vous ?**
+**→ RÉPONSE : Option A - Ne rien afficher** ✅
 
 ---
 
@@ -1013,9 +1019,9 @@ Avec les jours, voulez-vous afficher quels jours la tâche est active ?
 
 Vous avez dit "Option A : toutes les tâches existantes = actives tous les jours"
 
-**Confirmation** : Au déploiement, toutes les tâches actuelles auront automatiquement `activeDays: [0,1,2,3,4,5,6]` (tous les jours) ?
+**Confirmation** : Au déploiement, toutes les tâches actuelles seront dupliquées pour créer 7 instances (une par jour) ?
 
-**→ C'est bien ça ?**
+**→ RÉPONSE : OUI** ✅
 
 ---
 
@@ -1032,33 +1038,233 @@ Avec les jours :
                        ↑ Uniquement les tâches actives aujourd'hui
 ```
 
-**→ C'est bien ce que vous voulez ?**
+**→ RÉPONSE : OUI** ✅
 
 ---
 
-### ⏱️ Estimation Temps de Développement (Mise à jour)
+### 🚨 ANALYSE TECHNIQUE - Impact de l'Option B
 
-**Avec vos réponses (Niveau 1 - Simple) :**
+**ATTENTION** : Vous avez choisi l'**Option B** (État indépendant par jour).
 
-| Tâche | Temps estimé |
-|-------|--------------|
-| 1. Ajouter champ `activeDays` en base | 15 min |
-| 2. Modifier formulaire d'ajout (checkboxes jours) | 30 min |
-| 3. Ajouter navigation des jours (header) | 45 min |
-| 4. Implémenter filtrage par jour | 30 min |
-| 5. Migration automatique tâches existantes | 20 min |
-| 6. Ajuster statistiques (comptage par jour) | 20 min |
-| 7. Tests sur environnement TEST | 30 min |
-| **TOTAL** | **~3h** |
+Cela change **significativement** l'approche technique par rapport au "Niveau 1 Simple" initial.
+
+#### 📊 Implications Techniques
+
+**AVANT (Niveau 1 Simple prévu) :**
+```javascript
+// 1 tâche en base
+{
+  id: "task_001",
+  title: "Ranger sa chambre",
+  assignedTo: "bastien",
+  activeDays: [1, 2, 3],  // Lun, Mar, Mer
+  completed: false
+}
+```
+
+**MAINTENANT (Option B choisie) :**
+```javascript
+// 3 tâches distinctes en base
+{
+  id: "task_001_lun",
+  title: "Ranger sa chambre",
+  assignedTo: "bastien",
+  dayOfWeek: 1,  // Lundi uniquement
+  completed: false
+}
+{
+  id: "task_001_mar",
+  title: "Ranger sa chambre",
+  assignedTo: "bastien",
+  dayOfWeek: 2,  // Mardi uniquement
+  completed: false
+}
+{
+  id: "task_001_mer",
+  title: "Ranger sa chambre",
+  assignedTo: "bastien",
+  dayOfWeek: 3,  // Mercredi uniquement
+  completed: false
+}
+```
+
+**Conséquences** :
+- ⚠️ Multiplication du nombre de tâches en base
+- ⚠️ Complexité de modification (modifier 3 tâches au lieu de 1)
+- ⚠️ Complexité de suppression (supprimer 3 tâches au lieu de 1)
+- ✅ Chaque jour indépendant (ce que vous voulez)
 
 ---
 
-**🚀 PROCHAINE ÉTAPE : Répondez aux 6 questions de clarification ci-dessus**
+#### 🤔 NOUVELLES QUESTIONS CRITIQUES
+
+**QUESTION 7 : Groupement des tâches récurrentes** 🔴
+
+Si "Ranger sa chambre" est actif Lun-Mar-Mer, comment gérer l'édition/suppression ?
+
+**Scénario** : Vous voulez modifier "Ranger sa chambre" pour tous les jours
+- Option A : Créer une notion de "tâche parente" (templateId) qui lie les 3 tâches
+  ```javascript
+  {
+    id: "task_001_lun",
+    templateId: "template_123",  // ← Lie les tâches entre elles
+    title: "Ranger sa chambre",
+    dayOfWeek: 1
+  }
+  ```
+  - Modifier le template = modifier les 3 tâches
+  - Supprimer le template = supprimer les 3 tâches
+  - ✅ Cohérent
+  - ⚠️ Plus complexe
+
+- Option B : Tâches complètement indépendantes
+  - Pas de lien entre les 3 tâches "Ranger sa chambre"
+  - Pour modifier : modifier chaque tâche une par une
+  - Pour supprimer : supprimer chaque tâche une par une
+  - ❌ Fastidieux
+  - ✅ Simple techniquement
+
+**→ Laquelle préférez-vous ?** _______________
+
+---
+
+**QUESTION 8 : Création de tâche - Comment ça marche ?** 🔴
+
+Quand vous créez une tâche avec les jours [Lun][Mar][Mer] cochés :
+
+**Option A** : Créer immédiatement 3 tâches séparées
+- 1 clic → 3 tâches créées en base
+- Visibles immédiatement chaque jour
+
+**Option B** : Créer un "template" qui génère les tâches au fur et à mesure
+- Plus complexe, pas nécessaire pour votre besoin
+
+**→ Je suppose Option A ?** _______________
+
+---
+
+**QUESTION 9 : Migration des tâches existantes** 🔴
+
+Vous avez actuellement (exemple) :
+```
+- "Ranger sa chambre" (Bastien)
+- "Faire les devoirs" (Bastien)
+- "Préparer le café" (Papa)
+```
+
+Vous avez dit "OUI" à la migration automatique. Cela veut dire :
+
+**Scénario de migration** :
+- 1 tâche "Ranger sa chambre" actuelle → 7 tâches (Dim, Lun, Mar, Mer, Jeu, Ven, Sam)
+- Si vous avez 50 tâches actuellement → 350 tâches après migration (50 × 7)
+
+**Questions** :
+1. **Voulez-vous vraiment dupliquer toutes les tâches existantes × 7 ?**
+2. **Ou préférez-vous migrer manuellement / sélectivement ?**
+
+**Proposition alternative** :
+- Migration : Garder les tâches actuelles avec `activeDays: [0,1,2,3,4,5,6]` (option ancienne)
+- Nouvelles tâches : Système de jours séparés (option B)
+- Les anciennes tâches restent "tous les jours" jusqu'à ce que vous les modifiez
+
+**→ Quelle approche de migration ?** _______________
+
+---
+
+**QUESTION 10 : Édition d'une tâche - Interface** 🔴
+
+Actuellement, en mode admin, vous cliquez sur ✏️ pour éditer une tâche.
+
+**Avec l'Option B** : Si "Ranger sa chambre" existe Lun-Mar-Mer, qu'est-ce qui s'affiche ?
+
+**Scénario** : Vous êtes lundi, vous voyez "Ranger sa chambre", vous cliquez ✏️
+
+**Option A** : Éditer uniquement la tâche du lundi
+- Modification = seulement lundi changé
+- Les tâches Mar et Mer restent inchangées
+- ❌ Incohérent si vous voulez changer le nom pour tous les jours
+
+**Option B** : Éditer toutes les tâches liées (via templateId)
+- Modal affiche : "Cette tâche est liée à 3 jours (Lun, Mar, Mer)"
+- Modification = appliquée aux 3 jours
+- ✅ Plus logique
+- ⚠️ Nécessite le système de templateId (Question 7)
+
+**→ Laquelle préférez-vous ?** _______________
+
+---
+
+**QUESTION 11 : Suppression - Interface** 🔴
+
+Même question pour la suppression.
+
+**Scénario** : Lundi, vous supprimez "Ranger sa chambre"
+
+**Option A** : Supprime uniquement lundi
+- Mardi et Mercredi : la tâche existe toujours
+- ❌ Bizarre
+
+**Option B** : Demander "Supprimer pour tous les jours (Lun, Mar, Mer) ?"
+- Bouton [Supprimer uniquement lundi] [Supprimer tous les jours]
+- ✅ Plus clair
+- ⚠️ Nécessite le système de templateId
+
+**→ Laquelle préférez-vous ?** _______________
+
+---
+
+### ⏱️ Estimation Temps de Développement (MISE À JOUR CRITIQUE)
+
+**⚠️ IMPORTANT : Avec l'Option B, ce n'est plus "Niveau 1 Simple"**
+
+**Estimation révisée :**
+
+| Tâche | Temps estimé (AVANT) | Temps estimé (MAINTENANT) |
+|-------|---------------------|---------------------------|
+| 1. Structure base de données | 15 min | **45 min** (+ templateId + dayOfWeek) |
+| 2. Formulaire avec checkboxes | 30 min | **1h** (+ logique création multiple) |
+| 3. Navigation jours | 45 min | 45 min (inchangé) |
+| 4. Filtrage par jour | 30 min | **45 min** (+ gestion tâches liées) |
+| 5. Migration | 20 min | **1h30** (+ script de duplication × 7) |
+| 6. Statistiques | 20 min | 30 min |
+| 7. Édition/Suppression groupée | - | **1h30** (+ modal + logique groupée) |
+| 8. Tests sur TEST | 30 min | **1h** |
+| **TOTAL** | **~3h** | **~6h30-7h** |
+
+**Conclusion** : Ce n'est plus "Niveau 1 Simple" mais plutôt **"Niveau 2 Moyen+"**
+
+---
+
+### 💡 RECOMMANDATION
+
+**Avant de commencer à coder, répondez aux Questions 7-11 ci-dessus.**
+
+Ces questions sont **critiques** car elles impactent :
+- L'architecture de la base de données
+- L'interface utilisateur
+- Le temps de développement (×2 environ)
+- La complexité de maintenance
+
+**Alternative à considérer** :
+Si vous voulez vraiment l'indépendance des jours (Option B) MAIS que vous voulez aussi gérer facilement les modifications/suppressions, je recommande **fortement** d'implémenter le système de `templateId` (Question 7 - Option A).
+
+Cela permettra :
+- ✅ Indépendance de l'état completed par jour
+- ✅ Gestion cohérente des modifications/suppressions
+- ✅ Interface utilisateur claire
+- ⚠️ Mais augmente le temps de développement à ~7h
+
+---
+
+**🚀 PROCHAINE ÉTAPE : Répondez aux Questions 7-11 ci-dessus**
+
+Ces 5 nouvelles questions découlent de votre choix de l'**Option B** (tâches indépendantes par jour).
 
 Une fois que j'aurai ces réponses, je pourrai :
-1. Affiner le design
-2. Commencer l'implémentation sur TEST
-3. Vous faire tester au fur et à mesure
+1. Finaliser l'architecture technique
+2. Affiner le design et les mockups
+3. Commencer l'implémentation sur TEST
+4. Vous faire tester au fur et à mesure
 
 ---
 
