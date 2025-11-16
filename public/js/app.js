@@ -203,6 +203,14 @@ function loadTasks() {
 
 // Afficher les tâches
 function renderTasks(tasks) {
+    // ===== VÉRIFIER S'IL Y A DES ANCIENNES TÂCHES =====
+    const oldTasks = tasks.filter(task => task.dayOfWeek === undefined || task.dayOfWeek === null);
+    if (oldTasks.length > 0) {
+        showOldTasksWarning(oldTasks.length);
+    } else {
+        hideOldTasksWarning();
+    }
+    
     // ===== NOUVEAU : Filtrer par jour sélectionné =====
     const currentDayValue = getCurrentDay();
     const tasksForDay = tasks.filter(task => {
@@ -396,11 +404,38 @@ window.toggleTaskCompletion = async function(taskId, completed) {
 
 // Supprimer une tâche
 window.deleteTask = async function(taskId) {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?')) {
-        return;
-    }
-    
     try {
+        // Récupérer d'abord la tâche pour vérifier son dayOfWeek
+        const taskDoc = await getDoc(doc(window.db, 'tasks', taskId));
+        
+        if (!taskDoc.exists()) {
+            showNotification('Tâche introuvable', 'error');
+            return;
+        }
+        
+        const taskData = taskDoc.data();
+        
+        // Si la tâche n'a pas de dayOfWeek (ancienne tâche)
+        if (taskData.dayOfWeek === undefined || taskData.dayOfWeek === null) {
+            const shouldMigrate = confirm(
+                '⚠️ ANCIENNE TÂCHE DÉTECTÉE\n\n' +
+                'Cette tâche est un ancien format (avant le système par jour).\n' +
+                'Si vous la supprimez, elle disparaîtra de TOUS les jours.\n\n' +
+                '👉 Recommandation : Lancez d\'abord la migration depuis\n' +
+                'https://activity-day-to-day-test.web.app/migrate-browser.html\n\n' +
+                'Voulez-vous quand même la supprimer ?'
+            );
+            
+            if (!shouldMigrate) {
+                return;
+            }
+        }
+        
+        // Confirmation finale
+        if (!confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?')) {
+            return;
+        }
+        
         await deleteDoc(doc(window.db, 'tasks', taskId));
         showNotification('Tâche supprimée', 'success');
     } catch (error) {
@@ -1087,6 +1122,65 @@ function getPersonMaxStars(person) {
     const saved = localStorage.getItem(`maxStars_${person}`);
     return saved !== null ? parseInt(saved) : null;
 };
+
+// ===== AVERTISSEMENT ANCIENNES TÂCHES =====
+
+function showOldTasksWarning(count) {
+    let warningDiv = document.getElementById('oldTasksWarning');
+    
+    if (!warningDiv) {
+        // Créer le bandeau d'avertissement
+        warningDiv = document.createElement('div');
+        warningDiv.id = 'oldTasksWarning';
+        warningDiv.style.cssText = `
+            background: linear-gradient(135deg, #ffa726 0%, #ff9800 100%);
+            color: white;
+            padding: 15px 20px;
+            margin: 15px 0;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            justify-content: space-between;
+            animation: slideInDown 0.5s ease;
+        `;
+        
+        warningDiv.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 15px; flex: 1;">
+                <span style="font-size: 2em;">⚠️</span>
+                <div>
+                    <strong style="font-size: 1.1em; display: block; margin-bottom: 5px;">
+                        ${count} ANCIENNES TÂCHE(S) DÉTECTÉE(S)
+                    </strong>
+                    <small style="opacity: 0.9;">
+                        Ces tâches apparaissent sur TOUS les jours. 
+                        Pour les convertir au nouveau système, lancez la migration.
+                    </small>
+                </div>
+            </div>
+            <button onclick="window.location.href='migrate-browser.html'" 
+                    style="background: white; color: #ff9800; border: none; padding: 10px 20px; 
+                           border-radius: 8px; font-weight: bold; cursor: pointer; 
+                           transition: all 0.3s ease; white-space: nowrap;">
+                🔄 Migrer
+            </button>
+        `;
+        
+        // Insérer après la navigation des jours
+        const dayNav = document.querySelector('.day-navigation');
+        if (dayNav && dayNav.parentNode) {
+            dayNav.parentNode.insertBefore(warningDiv, dayNav.nextSibling);
+        }
+    }
+}
+
+function hideOldTasksWarning() {
+    const warningDiv = document.getElementById('oldTasksWarning');
+    if (warningDiv) {
+        warningDiv.remove();
+    }
+}
 
 // Fonction pour cocher/décocher toutes les tâches d'une personne
 window.checkAllTasks = async function(person, checked) {
