@@ -79,13 +79,13 @@ exports.dailyTaskReset = onSchedule({
       return null;
     }
     
-    // 4. Sauvegarder les statistiques avant reset
-    const stats = await saveCurrentStats(today);
-    console.log('📊 Statistiques sauvegardées:', stats);
+    // 4. Sauvegarder les statistiques avant reset (uniquement pour le jour actuel)
+    const stats = await saveCurrentStats(today, currentDayNumber);
+    console.log(`📊 Statistiques sauvegardées pour ${currentDay} (jour ${currentDayNumber}):`, stats);
     
-    // 5. Effectuer le reset des tâches
-    const resetCount = await resetAllTasks();
-    console.log(`🔄 ${resetCount} tâches remises à zéro`);
+    // 5. Effectuer le reset des tâches (uniquement pour le jour actuel)
+    const resetCount = await resetAllTasks(currentDayNumber);
+    console.log(`🔄 ${resetCount} tâches du ${currentDay} remises à zéro`);
     
     // 6. Mettre à jour la date du dernier reset
     await updateLastReset(today);
@@ -180,11 +180,18 @@ async function getResetConfig() {
 }
 
 /**
- * Sauvegarder les statistiques actuelles avant reset
+ * Sauvegarder les statistiques du jour avant reset
+ * @param {string} date - Date au format YYYY-MM-DD
+ * @param {number} dayOfWeek - Numéro du jour (0=Dimanche, 1=Lundi, etc.)
  */
-async function saveCurrentStats(date) {
+async function saveCurrentStats(date, dayOfWeek) {
   try {
-    const tasks = await db.collection('tasks').get();
+    // Récupérer UNIQUEMENT les tâches du jour actuel
+    const tasks = await db.collection('tasks')
+      .where('dayOfWeek', '==', dayOfWeek)
+      .get();
+    
+    console.log(`📊 Analyse de ${tasks.size} tâches pour le jour ${dayOfWeek}`);
     
     // Calculer les stats par personne
     const stats = {
@@ -246,12 +253,19 @@ async function saveCurrentStats(date) {
 }
 
 /**
- * Remettre toutes les tâches à zéro
+ * Remettre les tâches du jour à zéro
+ * @param {number} dayOfWeek - Numéro du jour (0=Dimanche, 1=Lundi, etc.)
  */
-async function resetAllTasks() {
+async function resetAllTasks(dayOfWeek) {
   try {
     const batch = db.batch();
-    const tasks = await db.collection('tasks').where('completed', '==', true).get();
+    // Récupérer UNIQUEMENT les tâches complétées du jour actuel
+    const tasks = await db.collection('tasks')
+      .where('completed', '==', true)
+      .where('dayOfWeek', '==', dayOfWeek)
+      .get();
+    
+    console.log(`🔄 Reset de ${tasks.size} tâches complétées pour le jour ${dayOfWeek}`);
     
     tasks.docs.forEach(doc => {
       batch.update(doc.ref, {
@@ -300,18 +314,24 @@ exports.manualTaskReset = onCall({
     const { testMode = false } = request.data || {};
     console.log('Mode test:', testMode);
     
+    // Obtenir le jour actuel
+    const now = new Date();
+    const currentDayNumber = now.getDay(); // 0=Dimanche, 1=Lundi, ..., 6=Samedi
+    const currentDay = now.toLocaleDateString('fr-FR', { weekday: 'long' });
+    console.log(`📅 Jour actuel: ${currentDay} (${currentDayNumber})`);
+    
     // 1. Sauvegarder les statistiques
     console.log('💾 Début sauvegarde statistiques...');
     const today = new Date().toISOString().split('T')[0];
     console.log('Date:', today);
     
-    const stats = await saveCurrentStats(today);
-    console.log('📊 Statistiques sauvegardées:', JSON.stringify(stats));
+    const stats = await saveCurrentStats(today, currentDayNumber);
+    console.log(`📊 Statistiques sauvegardées pour ${currentDay}:`, JSON.stringify(stats));
     
-    // 2. Reset des tâches
-    console.log('🔄 Début reset des tâches...');
-    const resetCount = await resetAllTasks();
-    console.log(`✅ ${resetCount} tâches réinitialisées`);
+    // 2. Reset des tâches (uniquement pour le jour actuel)
+    console.log(`🔄 Début reset des tâches du ${currentDay}...`);
+    const resetCount = await resetAllTasks(currentDayNumber);
+    console.log(`✅ ${resetCount} tâches du ${currentDay} réinitialisées`);
     
     // 3. Mettre à jour la config
     await updateLastReset(today);
@@ -337,9 +357,13 @@ exports.manualTaskReset = onCall({
     
     return {
       success: true,
-      message: testMode ? 'Test reset effectué avec succès' : 'Reset manuel effectué avec succès',
+      message: testMode 
+        ? `Test reset effectué avec succès pour ${currentDay}` 
+        : `Reset manuel effectué avec succès pour ${currentDay}`,
       stats: stats,
       resetCount: resetCount,
+      dayOfWeek: currentDayNumber,
+      dayName: currentDay,
       testMode: testMode
     };
     
