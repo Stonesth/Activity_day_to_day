@@ -145,10 +145,9 @@
         <div id="log"></div>
     </div>
 
-    <!-- Firebase SDK -->
+    <!-- Firebase SDK (sans Auth) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 
     <!-- Config Firebase AUTO-DÉTECTION -->
     <script>
@@ -178,10 +177,9 @@
         // Choisir la bonne configuration
         const firebaseConfig = isTestEnvironment ? testConfig : prodConfig;
 
-        // Initialiser Firebase
+        // Initialiser Firebase (Firestore uniquement)
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        const auth = firebase.auth();
 
         // Logger
         function log(message, type = 'info') {
@@ -195,13 +193,9 @@
         // Afficher l'environnement
         document.getElementById('env').textContent = firebaseConfig.projectId;
 
-        // Connexion anonyme automatique
-        auth.signInAnonymously().then(() => {
-            log('Connecté anonymement');
-            document.getElementById('user').textContent = 'Anonyme (accès lecture/écriture)';
-        }).catch(error => {
-            log(`Erreur de connexion: ${error.message}`, 'error');
-        });
+        // Pas d'authentification nécessaire - accès direct à Firestore
+        log('✅ Connecté à Firestore', 'success');
+        document.getElementById('user').textContent = 'Accès direct (sans auth)';
 
         let tasksData = null;
 
