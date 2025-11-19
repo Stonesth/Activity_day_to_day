@@ -186,12 +186,20 @@ async function getResetConfig() {
  */
 async function saveCurrentStats(date, dayOfWeek) {
   try {
-    // Récupérer UNIQUEMENT les tâches du jour actuel
-    const tasks = await db.collection('tasks')
-      .where('dayOfWeek', '==', dayOfWeek)
-      .get();
+    // Récupérer TOUTES les tâches (on filtrera en JS)
+    const allTasks = await db.collection('tasks').get();
     
-    console.log(`📊 Analyse de ${tasks.size} tâches pour le jour ${dayOfWeek}`);
+    // Filtrer pour inclure :
+    // 1. Les tâches avec dayOfWeek === jour actuel
+    // 2. Les anciennes tâches SANS dayOfWeek (qui apparaissent tous les jours)
+    const tasks = allTasks.docs.filter(doc => {
+      const task = doc.data();
+      return task.dayOfWeek === dayOfWeek || 
+             task.dayOfWeek === undefined || 
+             task.dayOfWeek === null;
+    });
+    
+    console.log(`📊 Analyse de ${tasks.length} tâches pour le jour ${dayOfWeek} (incluant anciennes tâches)`);
     
     // Calculer les stats par personne
     const stats = {
@@ -201,7 +209,7 @@ async function saveCurrentStats(date, dayOfWeek) {
       florent: { completed: 0, total: 0, stars: 0 }
     };
     
-    tasks.docs.forEach(doc => {
+    tasks.forEach(doc => {
       const task = doc.data();
       const person = task.assignedTo;
       
@@ -222,7 +230,7 @@ async function saveCurrentStats(date, dayOfWeek) {
     });
     
     // Totaux
-    const totalTasks = tasks.size;
+    const totalTasks = tasks.length;
     const totalCompleted = Object.values(stats).reduce((sum, p) => sum + p.completed, 0);
     const totalStars = Object.values(stats).reduce((sum, p) => sum + p.stars, 0);
     const familyCompletionRate = totalTasks > 0 
@@ -259,15 +267,25 @@ async function saveCurrentStats(date, dayOfWeek) {
 async function resetAllTasks(dayOfWeek) {
   try {
     const batch = db.batch();
-    // Récupérer UNIQUEMENT les tâches complétées du jour actuel
-    const tasks = await db.collection('tasks')
+    
+    // Récupérer TOUTES les tâches complétées (on filtrera en JS)
+    const allCompletedTasks = await db.collection('tasks')
       .where('completed', '==', true)
-      .where('dayOfWeek', '==', dayOfWeek)
       .get();
     
-    console.log(`🔄 Reset de ${tasks.size} tâches complétées pour le jour ${dayOfWeek}`);
+    // Filtrer pour inclure :
+    // 1. Les tâches avec dayOfWeek === jour actuel
+    // 2. Les anciennes tâches SANS dayOfWeek (qui apparaissent tous les jours)
+    const tasksToReset = allCompletedTasks.docs.filter(doc => {
+      const task = doc.data();
+      return task.dayOfWeek === dayOfWeek || 
+             task.dayOfWeek === undefined || 
+             task.dayOfWeek === null;
+    });
     
-    tasks.docs.forEach(doc => {
+    console.log(`🔄 Reset de ${tasksToReset.length} tâches complétées pour le jour ${dayOfWeek} (incluant anciennes tâches)`);
+    
+    tasksToReset.forEach(doc => {
       batch.update(doc.ref, {
         completed: false,
         updatedAt: admin.firestore.FieldValue.serverTimestamp()
@@ -275,7 +293,7 @@ async function resetAllTasks(dayOfWeek) {
     });
     
     await batch.commit();
-    return tasks.size;
+    return tasksToReset.length;
     
   } catch (error) {
     console.error('Erreur lors du reset des tâches:', error);
