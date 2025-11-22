@@ -397,6 +397,9 @@ function renderPersonTasks(person, tasks) {
     const manualMaxForDay = getPersonMaxStarsForDay(person, currentDayValue);
     const starsMax = manualMaxForDay !== null ? manualMaxForDay : calculatedMax;
     
+    // Log pour debug du max
+    debugLog(`⭐ ${person}: Calculé=${calculatedMax}, Manuel=${manualMaxForDay}, Utilisé=${starsMax}`, 'info');
+    
     // Afficher le nom du jour dans les statistiques
     const currentDayName = dayNames[getCurrentDay()];
     section.querySelector('.total-count').textContent = `${totalCount} tâche(s) - ${currentDayName}`;
