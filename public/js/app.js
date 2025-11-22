@@ -4,6 +4,7 @@ import {
     updateDoc, 
     deleteDoc, 
     doc, 
+    setDoc,
     getDoc,
     getDocs,
     getDocsFromServer,
@@ -43,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeApp();
 });
 
-function initializeApp() {
+async function initializeApp() {
     // Vérifier que Firebase est initialisé
     if (!window.db) {
         console.error('Firebase n\'est pas initialisé');
@@ -55,6 +56,9 @@ function initializeApp() {
     
     // Initialiser la navigation des jours
     initializeDayNavigation();
+    
+    // Précharger les max d'étoiles depuis Firestore
+    await preloadMaxStars();
     
     // Charger les tâches
     loadTasks();
@@ -342,17 +346,19 @@ function renderTasks(tasks) {
         debugLog(`  ${person}: ${completed}/${total}`, 'info');
     });
     
-    // Afficher les tâches pour chaque personne
-    Object.keys(tasksByPerson).forEach(person => {
-        renderPersonTasks(person, tasksByPerson[person]);
+    // Afficher les tâches pour chaque personne (en parallèle)
+    Promise.all(
+        Object.keys(tasksByPerson).map(person => 
+            renderPersonTasks(person, tasksByPerson[person])
+        )
+    ).then(() => {
+        // Appliquer le filtre actuel après que tout soit rendu
+        applyFilter(currentFilter);
     });
-    
-    // Appliquer le filtre actuel
-    applyFilter(currentFilter);
 }
 
 // Afficher les tâches d'une personne
-function renderPersonTasks(person, tasks) {
+async function renderPersonTasks(person, tasks) {
     const container = document.getElementById(`tasks-${person}`);
     const section = document.querySelector(`.person-section[data-person="${person}"]`);
     
@@ -392,9 +398,9 @@ function renderPersonTasks(person, tasks) {
     // Calculer le max UNIQUEMENT pour les tâches du jour actuel
     const calculatedMax = normalStarsMax + bonusStarsMax;
     
-    // Récupérer le max manuel spécifique au jour (si défini)
+    // Récupérer le max manuel spécifique au jour (si défini) - DEPUIS FIRESTORE
     const currentDayValue = getCurrentDay();
-    const manualMaxForDay = getPersonMaxStarsForDay(person, currentDayValue);
+    const manualMaxForDay = await getPersonMaxStarsForDay(person, currentDayValue);
     const starsMax = manualMaxForDay !== null ? manualMaxForDay : calculatedMax;
     
     // Log pour debug du max
@@ -1222,24 +1228,84 @@ style.textContent = `
 document.head.appendChild(style);
 
 // Fonction pour sauvegarder le max manuel d'étoiles d'une personne POUR UN JOUR SPÉCIFIQUE
-window.updatePersonMaxStars = function(person, maxValue) {
+window.updatePersonMaxStars = async function(person, maxValue) {
     const max = parseInt(maxValue) || 0;
     const currentDay = getCurrentDay();
     const dayName = dayNames[currentDay];
     
-    // Sauvegarder avec la clé incluant le jour
-    localStorage.setItem(`maxStars_${person}_day${currentDay}`, max);
-    
-    // Recharger les tâches pour mettre à jour l'affichage
-    loadTasks();
-    
-    showNotification(`✅ Max d'étoiles pour ${person} le ${dayName} : ${max}⭐`);
+    try {
+        // Sauvegarder dans Firestore au lieu de localStorage
+        const settingId = `${person}_day${currentDay}`;
+        await setDoc(doc(window.db, 'personSettings', settingId), {
+            person: person,
+            dayOfWeek: currentDay,
+            maxStars: max,
+            updatedAt: serverTimestamp()
+        });
+        
+        // Mettre à jour le cache en mémoire
+        const cacheKey = `${person}_day${currentDay}`;
+        maxStarsCache[cacheKey] = max;
+        
+        debugLog(`💾 Max sauvegardé dans Firestore: ${person} ${dayName} = ${max}⭐`, 'success');
+        
+        // Recharger les tâches pour mettre à jour l'affichage
+        loadTasks();
+        
+        showNotification(`✅ Max d'étoiles pour ${person} le ${dayName} : ${max}⭐`, 'success');
+    } catch (error) {
+        console.error('Erreur sauvegarde max:', error);
+        debugLog(`❌ Erreur sauvegarde: ${error.message}`, 'error');
+        showNotification('❌ Erreur lors de la sauvegarde', 'error');
+    }
 };
 
+// Cache en mémoire pour les max d'étoiles (évite de requêter Firestore à chaque render)
+const maxStarsCache = {};
+
 // Fonction pour récupérer le max manuel d'étoiles d'une personne pour un jour spécifique
-function getPersonMaxStarsForDay(person, dayOfWeek) {
-    const saved = localStorage.getItem(`maxStars_${person}_day${dayOfWeek}`);
-    return saved !== null ? parseInt(saved) : null;
+async function getPersonMaxStarsForDay(person, dayOfWeek) {
+    const cacheKey = `${person}_day${dayOfWeek}`;
+    
+    // Si en cache, retourner immédiatement
+    if (maxStarsCache[cacheKey] !== undefined) {
+        return maxStarsCache[cacheKey];
+    }
+    
+    try {
+        // Sinon, charger depuis Firestore
+        const settingId = `${person}_day${dayOfWeek}`;
+        const docRef = doc(window.db, 'personSettings', settingId);
+        const docSnap = await getDoc(docRef);
+        
+        if (docSnap.exists()) {
+            const maxStars = docSnap.data().maxStars;
+            maxStarsCache[cacheKey] = maxStars;
+            return maxStars;
+        } else {
+            // Pas de max manuel défini
+            maxStarsCache[cacheKey] = null;
+            return null;
+        }
+    } catch (error) {
+        console.error('Erreur lecture max:', error);
+        return null;
+    }
+};
+
+// Fonction pour précharger tous les max d'étoiles au démarrage
+async function preloadMaxStars() {
+    try {
+        const settingsSnapshot = await getDocs(collection(window.db, 'personSettings'));
+        settingsSnapshot.forEach(doc => {
+            const data = doc.data();
+            const cacheKey = `${data.person}_day${data.dayOfWeek}`;
+            maxStarsCache[cacheKey] = data.maxStars;
+        });
+        debugLog(`📥 ${settingsSnapshot.size} max d'étoiles préchargés`, 'success');
+    } catch (error) {
+        console.error('Erreur préchargement max:', error);
+    }
 };
 
 // ===== AVERTISSEMENT ANCIENNES TÂCHES =====
