@@ -66,5 +66,25 @@ service cloud.firestore {
       // Empêcher toute écriture manuelle (seulement via Cloud Functions)
       allow create, update, delete: if false;
     }
+    
+    // Règles pour la collection personSettings (max étoiles par personne et jour)
+    match /personSettings/{settingId} {
+      // Permettre la lecture à tous
+      allow read: if true;
+      
+      // Validation des données lors de la création/modification
+      allow create, update: if request.resource.data.keys().hasAll(['person', 'dayOfWeek', 'maxStars'])
+                            && request.resource.data.person is string
+                            && request.resource.data.person in ['papa', 'maman', 'bastien', 'florent']
+                            && request.resource.data.dayOfWeek is int
+                            && request.resource.data.dayOfWeek >= 0
+                            && request.resource.data.dayOfWeek <= 6
+                            && request.resource.data.maxStars is int
+                            && request.resource.data.maxStars >= 0
+                            && request.resource.data.maxStars <= 200;
+      
+      // Permettre la suppression
+      allow delete: if true;
+    }
   }
 }
