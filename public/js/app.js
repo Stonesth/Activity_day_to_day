@@ -6,6 +6,7 @@ import {
     doc, 
     getDoc,
     getDocs,
+    getDocsFromServer,
     onSnapshot,
     query,
     where,
@@ -216,6 +217,7 @@ function loadTasks() {
 window.forceRefresh = async function() {
     try {
         console.log('🔄 Force refresh depuis le serveur...');
+        console.log('📍 Début du refresh manuel');
         showNotification('🔄 Rechargement...', 'info');
         
         // Créer la même requête
@@ -225,8 +227,14 @@ window.forceRefresh = async function() {
             orderBy('order')
         );
         
-        // Forcer getDocs depuis le serveur (pas de cache)
-        const snapshot = await getDocs(q);
+        console.log('📡 Requête créée, interrogation du serveur...');
+        
+        // IMPORTANT: Forcer getDocs à utiliser le serveur (pas de cache)
+        // En utilisant getDocsFromServer au lieu de getDocs
+        const snapshot = await getDocsFromServer(q);
+        
+        console.log(`📦 Snapshot reçu: ${snapshot.size} documents`);
+        console.log(`🔍 Source: ${snapshot.metadata.fromCache ? 'CACHE ❌' : 'SERVEUR ✅'}`);
         
         const tasks = [];
         snapshot.forEach((doc) => {
@@ -237,11 +245,15 @@ window.forceRefresh = async function() {
         });
         
         console.log(`✅ ${tasks.length} tâches rechargées depuis le serveur`);
+        console.log('📊 Tâches:', tasks.map(t => `${t.name} (${t.assignedTo})`));
+        
         renderTasks(tasks);
         showNotification('✅ Rechargé avec succès', 'success');
         
     } catch (error) {
         console.error('❌ Erreur lors du refresh:', error);
+        console.error('❌ Détails:', error.message);
+        console.error('❌ Stack:', error.stack);
         showNotification('❌ Erreur lors du rechargement', 'error');
     }
 };
