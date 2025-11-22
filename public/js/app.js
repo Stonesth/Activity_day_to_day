@@ -303,6 +303,12 @@ function renderTasks(tasks) {
     
     // ===== NOUVEAU : Filtrer par jour sélectionné =====
     const currentDayValue = getCurrentDay();
+    const currentDayName = dayNames[currentDayValue];
+    
+    debugLog(`📅 Jour actuel: ${currentDayName} (${currentDayValue})`, 'info');
+    debugLog(`📋 Total tâches reçues: ${tasks.length}`, 'info');
+    debugLog(`⚠️ Anciennes tâches (sans jour): ${oldTasks.length}`, 'info');
+    
     const tasksForDay = tasks.filter(task => {
         // Si la tâche n'a pas de dayOfWeek (anciennes tâches), la garder
         if (task.dayOfWeek === undefined || task.dayOfWeek === null) {
@@ -311,6 +317,8 @@ function renderTasks(tasks) {
         // Sinon, vérifier si c'est le bon jour
         return task.dayOfWeek === currentDayValue;
     });
+    
+    debugLog(`✅ Tâches pour ${currentDayName}: ${tasksForDay.length}`, 'success');
     
     // Grouper les tâches par personne
     const tasksByPerson = {
@@ -324,6 +332,14 @@ function renderTasks(tasks) {
         if (tasksByPerson[task.assignedTo]) {
             tasksByPerson[task.assignedTo].push(task);
         }
+    });
+    
+    // Log détaillé par personne
+    debugLog(`👥 Détail par personne:`, 'info');
+    Object.keys(tasksByPerson).forEach(person => {
+        const completed = tasksByPerson[person].filter(t => t.completed).length;
+        const total = tasksByPerson[person].length;
+        debugLog(`  ${person}: ${completed}/${total}`, 'info');
     });
     
     // Afficher les tâches pour chaque personne
