@@ -10,8 +10,22 @@
 <body>
     <div class="container">
         <header class="main-header">
-            <h1>📋 Tâches Familiales</h1>
-            <p>Gérez vos tâches quotidiennes en famille</p>
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <div>
+                    <h1>📋 Tâches Familiales</h1>
+                    <p>Gérez vos tâches quotidiennes en famille</p>
+                </div>
+                <button onclick="forceRefresh()" 
+                        style="background: #17a2b8; color: white; border: none; padding: 12px 20px; 
+                               border-radius: 8px; cursor: pointer; font-size: 16px; 
+                               display: flex; align-items: center; gap: 8px; 
+                               transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(23,162,184,0.3);"
+                        onmouseover="this.style.background='#138496'; this.style.transform='scale(1.05)'"
+                        onmouseout="this.style.background='#17a2b8'; this.style.transform='scale(1)'"
+                        title="Recharger les données depuis le serveur">
+                    🔄 Actualiser
+                </button>
+            </div>
         </header>
 
         <!-- Navigation des Jours -->
@@ -540,6 +554,6 @@
         window.db = db;
     </script>
     
-    <script type="module" src="js/app.js?v=5.3"></script>
+    <script type="module" src="js/app.js?v=5.4"></script>
 </body>
 </html>

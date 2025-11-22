@@ -178,14 +178,20 @@ function loadTasks() {
     }
     
     // Créer une requête pour récupérer toutes les tâches triées par ordre personnalisé
+    // IMPORTANT: Force le rechargement depuis le serveur (pas de cache)
     const q = query(
         collection(window.db, 'tasks'),
         orderBy('assignedTo'),
         orderBy('order')
     );
     
-    // Écouter les changements en temps réel
-    unsubscribe = onSnapshot(q, (snapshot) => {
+    // Options pour forcer le rechargement depuis le serveur
+    const snapshotOptions = {
+        includeMetadataChanges: false
+    };
+    
+    // Écouter les changements en temps réel avec source = 'server'
+    unsubscribe = onSnapshot(q, snapshotOptions, (snapshot) => {
         const tasks = [];
         snapshot.forEach((doc) => {
             tasks.push({
@@ -194,12 +200,51 @@ function loadTasks() {
             });
         });
         
+        // Log la source des données pour debug
+        snapshot.metadata.fromCache 
+            ? console.log('📦 Données chargées depuis le cache')
+            : console.log('🌐 Données chargées depuis le serveur');
+        
         renderTasks(tasks);
     }, (error) => {
         console.error('Erreur lors du chargement des tâches:', error);
         showNotification('Erreur lors du chargement des tâches', 'error');
     });
 }
+
+// Fonction pour forcer le refresh manuel depuis le serveur
+window.forceRefresh = async function() {
+    try {
+        console.log('🔄 Force refresh depuis le serveur...');
+        showNotification('🔄 Rechargement...', 'info');
+        
+        // Créer la même requête
+        const q = query(
+            collection(window.db, 'tasks'),
+            orderBy('assignedTo'),
+            orderBy('order')
+        );
+        
+        // Forcer getDocs depuis le serveur (pas de cache)
+        const snapshot = await getDocs(q);
+        
+        const tasks = [];
+        snapshot.forEach((doc) => {
+            tasks.push({
+                id: doc.id,
+                ...doc.data()
+            });
+        });
+        
+        console.log(`✅ ${tasks.length} tâches rechargées depuis le serveur`);
+        renderTasks(tasks);
+        showNotification('✅ Rechargé avec succès', 'success');
+        
+    } catch (error) {
+        console.error('❌ Erreur lors du refresh:', error);
+        showNotification('❌ Erreur lors du rechargement', 'error');
+    }
+};
 
 // Afficher les tâches
 function renderTasks(tasks) {
