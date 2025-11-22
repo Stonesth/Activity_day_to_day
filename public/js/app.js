@@ -213,11 +213,44 @@ function loadTasks() {
     });
 }
 
+// ===== FONCTIONS DE DEBUG VISIBLE =====
+function debugLog(message, type = 'info') {
+    // Log dans la console normale
+    console.log(message);
+    
+    // Log dans la zone visible
+    const debugLogsDiv = document.getElementById('debugLogs');
+    if (debugLogsDiv) {
+        const timestamp = new Date().toLocaleTimeString();
+        const color = type === 'error' ? '#ff0000' : type === 'success' ? '#00ff00' : '#00ffff';
+        debugLogsDiv.innerHTML += `<div style="color: ${color};">[${timestamp}] ${message}</div>`;
+        debugLogsDiv.scrollTop = debugLogsDiv.scrollHeight;
+    }
+}
+
+window.toggleDebugAndRefresh = function() {
+    const debugPanel = document.getElementById('debugPanel');
+    debugPanel.style.display = debugPanel.style.display === 'none' ? 'block' : 'none';
+    
+    if (debugPanel.style.display === 'block') {
+        debugLog('🔄 Debug activé - Refresh en cours...', 'info');
+    }
+    
+    forceRefresh();
+};
+
+window.clearDebugLogs = function() {
+    const debugLogsDiv = document.getElementById('debugLogs');
+    if (debugLogsDiv) {
+        debugLogsDiv.innerHTML = '';
+    }
+};
+
 // Fonction pour forcer le refresh manuel depuis le serveur
 window.forceRefresh = async function() {
     try {
-        console.log('🔄 Force refresh depuis le serveur...');
-        console.log('📍 Début du refresh manuel');
+        debugLog('🔄 Force refresh depuis le serveur...', 'info');
+        debugLog('📍 Début du refresh manuel', 'info');
         showNotification('🔄 Rechargement...', 'info');
         
         // Créer la même requête
@@ -227,14 +260,15 @@ window.forceRefresh = async function() {
             orderBy('order')
         );
         
-        console.log('📡 Requête créée, interrogation du serveur...');
+        debugLog('📡 Requête créée, interrogation du serveur...', 'info');
         
         // IMPORTANT: Forcer getDocs à utiliser le serveur (pas de cache)
         // En utilisant getDocsFromServer au lieu de getDocs
         const snapshot = await getDocsFromServer(q);
         
-        console.log(`📦 Snapshot reçu: ${snapshot.size} documents`);
-        console.log(`🔍 Source: ${snapshot.metadata.fromCache ? 'CACHE ❌' : 'SERVEUR ✅'}`);
+        debugLog(`📦 Snapshot reçu: ${snapshot.size} documents`, 'info');
+        debugLog(`🔍 Source: ${snapshot.metadata.fromCache ? 'CACHE ❌' : 'SERVEUR ✅'}`, 
+                 snapshot.metadata.fromCache ? 'error' : 'success');
         
         const tasks = [];
         snapshot.forEach((doc) => {
@@ -244,16 +278,15 @@ window.forceRefresh = async function() {
             });
         });
         
-        console.log(`✅ ${tasks.length} tâches rechargées depuis le serveur`);
-        console.log('📊 Tâches:', tasks.map(t => `${t.name} (${t.assignedTo})`));
+        debugLog(`✅ ${tasks.length} tâches rechargées depuis le serveur`, 'success');
+        debugLog(`📊 Tâches: ${tasks.slice(0, 3).map(t => t.name).join(', ')}...`, 'info');
         
         renderTasks(tasks);
         showNotification('✅ Rechargé avec succès', 'success');
         
     } catch (error) {
-        console.error('❌ Erreur lors du refresh:', error);
-        console.error('❌ Détails:', error.message);
-        console.error('❌ Stack:', error.stack);
+        debugLog(`❌ Erreur lors du refresh: ${error.message}`, 'error');
+        debugLog(`❌ Stack: ${error.stack}`, 'error');
         showNotification('❌ Erreur lors du rechargement', 'error');
     }
 };

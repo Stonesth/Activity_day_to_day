@@ -15,7 +15,7 @@
                     <h1>📋 Tâches Familiales</h1>
                     <p>Gérez vos tâches quotidiennes en famille</p>
                 </div>
-                <button onclick="forceRefresh()" 
+                <button onclick="toggleDebugAndRefresh()" 
                         style="background: #17a2b8; color: white; border: none; padding: 12px 20px; 
                                border-radius: 8px; cursor: pointer; font-size: 16px; 
                                display: flex; align-items: center; gap: 8px; 
@@ -60,6 +60,22 @@
                 </div>
                 <button class="btn-today" onclick="goToToday()">Retour à Aujourd'hui</button>
             </div>
+        </div>
+
+        <!-- Zone de Debug (visible sur mobile/tablette) -->
+        <div id="debugPanel" style="display: none; position: fixed; bottom: 0; left: 0; right: 0; 
+                                     background: #1a1a1a; color: #00ff00; padding: 15px; 
+                                     max-height: 200px; overflow-y: auto; font-family: monospace; 
+                                     font-size: 12px; border-top: 3px solid #00ff00; z-index: 9999;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                <strong style="color: #00ff00;">📊 DEBUG LOGS</strong>
+                <button onclick="clearDebugLogs()" 
+                        style="background: #333; color: #00ff00; border: 1px solid #00ff00; 
+                               padding: 5px 10px; cursor: pointer; border-radius: 4px;">
+                    Effacer
+                </button>
+            </div>
+            <div id="debugLogs" style="white-space: pre-wrap; word-break: break-all;"></div>
         </div>
 
         <!-- Filtres -->
@@ -554,6 +570,6 @@
         window.db = db;
     </script>
     
-    <script type="module" src="js/app.js?v=5.5"></script>
+    <script type="module" src="js/app.js?v=5.6"></script>
 </body>
 </html>
