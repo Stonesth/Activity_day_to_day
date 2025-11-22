@@ -219,10 +219,15 @@ function loadTasks() {
 
 // ===== FONCTIONS DE DEBUG VISIBLE =====
 function debugLog(message, type = 'info') {
-    // Log dans la console normale
+    // Log toujours dans la console
     console.log(message);
     
-    // Log dans la zone visible
+    // Si le mode admin n'est pas actif, ne pas afficher le panneau visible
+    if (!window.isAdminMode) {
+        return;
+    }
+    
+    // Log dans la zone visible uniquement en mode admin
     const debugLogsDiv = document.getElementById('debugLogs');
     if (debugLogsDiv) {
         const timestamp = new Date().toLocaleTimeString();
@@ -233,7 +238,19 @@ function debugLog(message, type = 'info') {
 }
 
 window.toggleDebugAndRefresh = function() {
+    // En mode normal, on fait juste un refresh silencieux (notifications ok)
+    if (!window.isAdminMode) {
+        forceRefresh();
+        return;
+    }
+
+    // En mode admin, on affiche/masque le panneau de debug et on log
     const debugPanel = document.getElementById('debugPanel');
+    if (!debugPanel) {
+        forceRefresh();
+        return;
+    }
+
     debugPanel.style.display = debugPanel.style.display === 'none' ? 'block' : 'none';
     
     if (debugPanel.style.display === 'block') {
@@ -1043,6 +1060,8 @@ function enableAdminMode() {
     if (resetAdminLink) {
         resetAdminLink.style.display = 'inline-block';
     }
+    
+    // En mode admin, on peut afficher la zone de debug à la demande (via le bouton Actualiser)
 }
 
 // Désactiver le mode admin
@@ -1055,6 +1074,16 @@ function disableAdminMode() {
     adminBtn.classList.remove('active');
     adminBtn.textContent = '🔒';
     adminBtn.title = 'Mode Admin - Activer pour supprimer';
+    
+    // Masquer le panneau de debug et nettoyer les logs en sortie du mode admin
+    const debugPanel = document.getElementById('debugPanel');
+    if (debugPanel) {
+        debugPanel.style.display = 'none';
+    }
+    const debugLogsDiv = document.getElementById('debugLogs');
+    if (debugLogsDiv) {
+        debugLogsDiv.innerHTML = '';
+    }
     
     // Retirer la classe pour cacher les boutons de suppression et les inputs
     container.classList.remove('admin-mode-active');
