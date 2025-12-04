@@ -146,6 +146,7 @@ async function handleTaskSubmit(e) {
         category: document.getElementById('category').value,
         isBonus: document.getElementById('isBonus').checked,
         isPenalty: document.getElementById('isPenalty').checked,
+        isSeriousFault: document.getElementById('isSeriousFault').checked, // Nouveau champ
         completed: false,
         order: nextOrder,
         createdAt: serverTimestamp(),
@@ -409,8 +410,17 @@ async function renderPersonTasks(person, tasks) {
         .filter(t => t.completed)
         .reduce((sum, t) => sum + (t.stars || 0), 0);
 
+    // Vérifier s'il y a une faute grave complétée
+    const hasSeriousFault = tasks.some(t => t.isSeriousFault && t.completed);
+
     // Total des étoiles (pour affichage) : positives - pénalités
-    const starsEarned = Math.max(0, normalStarsEarned + bonusStarsEarned - penaltyStars);
+    // SI FAUTE GRAVE : Le total tombe à 0 !
+    let starsEarned = Math.max(0, normalStarsEarned + bonusStarsEarned - penaltyStars);
+
+    if (hasSeriousFault) {
+        starsEarned = 0;
+        debugLog(`💀 FAUTE GRAVE détectée pour ${person} ! Reset des étoiles à 0.`, 'warning');
+    }
 
     // Calculer le max UNIQUEMENT pour les tâches du jour actuel
     // MODIFICATION: On ne compte plus les tâches bonus dans le max
@@ -480,11 +490,16 @@ function createTaskElement(task, person) {
         ? `-${task.stars || 1}⭐`
         : '⭐'.repeat(task.stars || 1);
 
-    // Ajouter une classe spéciale pour les pénalités
-    if (task.isPenalty) {
-        div.classList.add('penalty-item');
-    }
+    // Ajouter les classes spéciales
+    if (task.isBonus) div.classList.add('bonus');
+    if (task.isPenalty) div.classList.add('penalty');
+    if (task.isSeriousFault) div.classList.add('serious-fault');
 
+    // Déterminer l'icône et le label
+    let typeLabel = '';
+    if (task.isBonus) typeLabel = '<span class="tag bonus">BONUS</span>';
+    if (task.isPenalty) typeLabel = '<span class="tag penalty">PÉNALITÉ</span>';
+    if (task.isSeriousFault) typeLabel = '<span class="tag penalty" style="background:#d32f2f; color:white;">FAUTE GRAVE</span>';
     div.innerHTML = `
         <div class="task-header">
             <div class="drag-handle" title="Glisser pour réorganiser">⋮⋮</div>
