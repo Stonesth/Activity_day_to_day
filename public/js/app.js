@@ -1,9 +1,9 @@
-import { 
-    collection, 
-    addDoc, 
-    updateDoc, 
-    deleteDoc, 
-    doc, 
+import {
+    collection,
+    addDoc,
+    updateDoc,
+    deleteDoc,
+    doc,
     setDoc,
     getDoc,
     getDocs,
@@ -12,7 +12,7 @@ import {
     query,
     where,
     orderBy,
-    serverTimestamp 
+    serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 // Variables globales
@@ -53,13 +53,13 @@ async function initializeApp() {
 
     // Initialiser les écouteurs d'événements
     setupEventListeners();
-    
+
     // Initialiser la navigation des jours
     initializeDayNavigation();
-    
+
     // Précharger les max d'étoiles depuis Firestore
     await preloadMaxStars();
-    
+
     // Charger les tâches
     loadTasks();
 }
@@ -69,15 +69,15 @@ function setupEventListeners() {
     // Toggle formulaire
     document.getElementById('toggleFormBtn').addEventListener('click', toggleForm);
     document.getElementById('cancelFormBtn').addEventListener('click', toggleForm);
-    
+
     // Soumission du formulaire
     document.getElementById('taskForm').addEventListener('submit', handleTaskSubmit);
-    
+
     // Filtres
     document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.addEventListener('click', handleFilterClick);
     });
-    
+
     // Mode Admin
     document.getElementById('adminModeBtn').addEventListener('click', handleAdminModeClick);
     document.getElementById('cancelPinBtn').addEventListener('click', closePinModal);
@@ -87,7 +87,7 @@ function setupEventListeners() {
             validatePin();
         }
     });
-    
+
     // Édition de tâche
     document.getElementById('cancelEditBtn').addEventListener('click', closeEditTaskModal);
     document.getElementById('editTaskForm').addEventListener('submit', handleEditTaskSubmit);
@@ -97,7 +97,7 @@ function setupEventListeners() {
 function toggleForm() {
     const form = document.getElementById('taskForm');
     form.classList.toggle('hidden');
-    
+
     if (!form.classList.contains('hidden')) {
         document.getElementById('taskTitle').focus();
     }
@@ -106,7 +106,7 @@ function toggleForm() {
 // Gestion de la soumission du formulaire
 async function handleTaskSubmit(e) {
     e.preventDefault();
-    
+
     // Vérifier que tous les champs nécessaires existent
     const starsElement = document.getElementById('stars');
     if (!starsElement) {
@@ -114,15 +114,15 @@ async function handleTaskSubmit(e) {
         showNotification('Erreur : Veuillez rafraîchir la page (Ctrl+Shift+R)', 'error');
         return;
     }
-    
+
     // Obtenir le nombre actuel de tâches pour calculer l'ordre
     const assignedTo = document.getElementById('assignedTo').value;
     const existingTasksSnapshot = await getDocs(
-        query(collection(window.db, 'tasks'), 
-              where('assignedTo', '==', assignedTo))
+        query(collection(window.db, 'tasks'),
+            where('assignedTo', '==', assignedTo))
     );
     const nextOrder = existingTasksSnapshot.size;
-    
+
     // ===== NOUVEAU : Récupérer les jours sélectionnés =====
     const selectedDays = [];
     for (let i = 0; i <= 6; i++) {
@@ -131,13 +131,13 @@ async function handleTaskSubmit(e) {
             selectedDays.push(i);
         }
     }
-    
+
     // Si aucun jour sélectionné, erreur
     if (selectedDays.length === 0) {
         showNotification('Veuillez sélectionner au moins un jour', 'error');
         return;
     }
-    
+
     const baseTaskData = {
         title: document.getElementById('taskTitle').value.trim(),
         description: document.getElementById('taskDescription').value.trim(),
@@ -151,7 +151,7 @@ async function handleTaskSubmit(e) {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
     };
-    
+
     try {
         // Créer une tâche pour chaque jour sélectionné
         const promises = selectedDays.map((day) => {
@@ -160,13 +160,13 @@ async function handleTaskSubmit(e) {
                 dayOfWeek: day
             });
         });
-        
+
         await Promise.all(promises);
-        
+
         // Réinitialiser le formulaire
         e.target.reset();
         toggleForm();
-        
+
         const dayText = selectedDays.length === 7 ? 'tous les jours' : `${selectedDays.length} jour(s)`;
         showNotification(`Tâche ajoutée pour ${dayText} !`, 'success');
     } catch (error) {
@@ -181,7 +181,7 @@ function loadTasks() {
     if (unsubscribe) {
         unsubscribe();
     }
-    
+
     // Créer une requête pour récupérer toutes les tâches triées par ordre personnalisé
     // IMPORTANT: Force le rechargement depuis le serveur (pas de cache)
     const q = query(
@@ -189,12 +189,12 @@ function loadTasks() {
         orderBy('assignedTo'),
         orderBy('order')
     );
-    
+
     // Options pour forcer le rechargement depuis le serveur
     const snapshotOptions = {
         includeMetadataChanges: false
     };
-    
+
     // Écouter les changements en temps réel avec source = 'server'
     unsubscribe = onSnapshot(q, snapshotOptions, (snapshot) => {
         const tasks = [];
@@ -204,12 +204,12 @@ function loadTasks() {
                 ...doc.data()
             });
         });
-        
+
         // Log la source des données pour debug
-        snapshot.metadata.fromCache 
+        snapshot.metadata.fromCache
             ? console.log('📦 Données chargées depuis le cache')
             : console.log('🌐 Données chargées depuis le serveur');
-        
+
         renderTasks(tasks);
     }, (error) => {
         console.error('Erreur lors du chargement des tâches:', error);
@@ -221,12 +221,12 @@ function loadTasks() {
 function debugLog(message, type = 'info') {
     // Log toujours dans la console
     console.log(message);
-    
+
     // Si le mode admin n'est pas actif, ne pas afficher le panneau visible
     if (!window.isAdminMode) {
         return;
     }
-    
+
     // Log dans la zone visible uniquement en mode admin
     const debugLogsDiv = document.getElementById('debugLogs');
     if (debugLogsDiv) {
@@ -237,7 +237,7 @@ function debugLog(message, type = 'info') {
     }
 }
 
-window.toggleDebugAndRefresh = function() {
+window.toggleDebugAndRefresh = function () {
     // En mode normal, on fait juste un refresh silencieux (notifications ok)
     if (!window.isAdminMode) {
         forceRefresh();
@@ -252,15 +252,15 @@ window.toggleDebugAndRefresh = function() {
     }
 
     debugPanel.style.display = debugPanel.style.display === 'none' ? 'block' : 'none';
-    
+
     if (debugPanel.style.display === 'block') {
         debugLog('🔄 Debug activé - Refresh en cours...', 'info');
     }
-    
+
     forceRefresh();
 };
 
-window.clearDebugLogs = function() {
+window.clearDebugLogs = function () {
     const debugLogsDiv = document.getElementById('debugLogs');
     if (debugLogsDiv) {
         debugLogsDiv.innerHTML = '';
@@ -268,29 +268,29 @@ window.clearDebugLogs = function() {
 };
 
 // Fonction pour forcer le refresh manuel depuis le serveur
-window.forceRefresh = async function() {
+window.forceRefresh = async function () {
     try {
         debugLog('🔄 Force refresh depuis le serveur...', 'info');
         debugLog('📍 Début du refresh manuel', 'info');
         showNotification('🔄 Rechargement...', 'info');
-        
+
         // Créer la même requête
         const q = query(
             collection(window.db, 'tasks'),
             orderBy('assignedTo'),
             orderBy('order')
         );
-        
+
         debugLog('📡 Requête créée, interrogation du serveur...', 'info');
-        
+
         // IMPORTANT: Forcer getDocs à utiliser le serveur (pas de cache)
         // En utilisant getDocsFromServer au lieu de getDocs
         const snapshot = await getDocsFromServer(q);
-        
+
         debugLog(`📦 Snapshot reçu: ${snapshot.size} documents`, 'info');
-        debugLog(`🔍 Source: ${snapshot.metadata.fromCache ? 'CACHE ❌' : 'SERVEUR ✅'}`, 
-                 snapshot.metadata.fromCache ? 'error' : 'success');
-        
+        debugLog(`🔍 Source: ${snapshot.metadata.fromCache ? 'CACHE ❌' : 'SERVEUR ✅'}`,
+            snapshot.metadata.fromCache ? 'error' : 'success');
+
         const tasks = [];
         snapshot.forEach((doc) => {
             tasks.push({
@@ -298,13 +298,13 @@ window.forceRefresh = async function() {
                 ...doc.data()
             });
         });
-        
+
         debugLog(`✅ ${tasks.length} tâches rechargées depuis le serveur`, 'success');
         debugLog(`📊 Tâches: ${tasks.slice(0, 3).map(t => t.name).join(', ')}...`, 'info');
-        
+
         renderTasks(tasks);
         showNotification('✅ Rechargé avec succès', 'success');
-        
+
     } catch (error) {
         debugLog(`❌ Erreur lors du refresh: ${error.message}`, 'error');
         debugLog(`❌ Stack: ${error.stack}`, 'error');
@@ -321,15 +321,15 @@ function renderTasks(tasks) {
     } else {
         hideOldTasksWarning();
     }
-    
+
     // ===== NOUVEAU : Filtrer par jour sélectionné =====
     const currentDayValue = getCurrentDay();
     const currentDayName = dayNames[currentDayValue];
-    
+
     debugLog(`📅 Jour actuel: ${currentDayName} (${currentDayValue})`, 'info');
     debugLog(`📋 Total tâches reçues: ${tasks.length}`, 'info');
     debugLog(`⚠️ Anciennes tâches (sans jour): ${oldTasks.length}`, 'info');
-    
+
     const tasksForDay = tasks.filter(task => {
         // Si la tâche n'a pas de dayOfWeek (anciennes tâches), la garder
         if (task.dayOfWeek === undefined || task.dayOfWeek === null) {
@@ -338,9 +338,9 @@ function renderTasks(tasks) {
         // Sinon, vérifier si c'est le bon jour
         return task.dayOfWeek === currentDayValue;
     });
-    
+
     debugLog(`✅ Tâches pour ${currentDayName}: ${tasksForDay.length}`, 'success');
-    
+
     // Grouper les tâches par personne
     const tasksByPerson = {
         papa: [],
@@ -348,13 +348,13 @@ function renderTasks(tasks) {
         bastien: [],
         florent: []
     };
-    
+
     tasksForDay.forEach(task => {
         if (tasksByPerson[task.assignedTo]) {
             tasksByPerson[task.assignedTo].push(task);
         }
     });
-    
+
     // Log détaillé par personne
     debugLog(`👥 Détail par personne:`, 'info');
     Object.keys(tasksByPerson).forEach(person => {
@@ -362,10 +362,10 @@ function renderTasks(tasks) {
         const total = tasksByPerson[person].length;
         debugLog(`  ${person}: ${completed}/${total}`, 'info');
     });
-    
+
     // Afficher les tâches pour chaque personne (en parallèle)
     Promise.all(
-        Object.keys(tasksByPerson).map(person => 
+        Object.keys(tasksByPerson).map(person =>
             renderPersonTasks(person, tasksByPerson[person])
         )
     ).then(() => {
@@ -378,63 +378,65 @@ function renderTasks(tasks) {
 async function renderPersonTasks(person, tasks) {
     const container = document.getElementById(`tasks-${person}`);
     const section = document.querySelector(`.person-section[data-person="${person}"]`);
-    
+
     if (!container || !section) return;
-    
+
     // Mettre à jour les statistiques
     const totalCount = tasks.length;
     const completedCount = tasks.filter(t => t.completed && !t.isPenalty).length;
-    
+
     // Séparer les tâches normales, bonus et pénalités
     const normalTasks = tasks.filter(t => !t.isBonus && !t.isPenalty);
     const bonusTasks = tasks.filter(t => t.isBonus && !t.isPenalty);
     const penaltyTasks = tasks.filter(t => t.isPenalty);
-    
+
     // Calculer les étoiles pour les tâches normales
     const normalStarsEarned = normalTasks
         .filter(t => t.completed)
         .reduce((sum, t) => sum + (t.stars || 0), 0);
     const normalStarsMax = normalTasks
         .reduce((sum, t) => sum + (t.stars || 0), 0);
-    
+
     // Calculer les étoiles pour les tâches bonus
     const bonusStarsEarned = bonusTasks
         .filter(t => t.completed)
         .reduce((sum, t) => sum + (t.stars || 0), 0);
     const bonusStarsMax = bonusTasks
         .reduce((sum, t) => sum + (t.stars || 0), 0);
-    
+
     // Calculer les pénalités (étoiles négatives cochées)
     const penaltyStars = penaltyTasks
         .filter(t => t.completed)
         .reduce((sum, t) => sum + (t.stars || 0), 0);
-    
+
     // Total des étoiles (pour affichage) : positives - pénalités
     const starsEarned = Math.max(0, normalStarsEarned + bonusStarsEarned - penaltyStars);
-    
+
     // Calculer le max UNIQUEMENT pour les tâches du jour actuel
-    const calculatedMax = normalStarsMax + bonusStarsMax;
-    
+    // MODIFICATION: On ne compte plus les tâches bonus dans le max
+    // Le but est que les bonus aident à atteindre le 100% (si malus) ou à le dépasser
+    const calculatedMax = normalStarsMax; // + bonusStarsMax (RETIRÉ)
+
     // Récupérer le max manuel spécifique au jour (si défini) - DEPUIS FIRESTORE
     const currentDayValue = getCurrentDay();
     const manualMaxForDay = await getPersonMaxStarsForDay(person, currentDayValue);
     const starsMax = manualMaxForDay !== null ? manualMaxForDay : calculatedMax;
-    
+
     // Log pour debug du max
     debugLog(`⭐ ${person}: Calculé=${calculatedMax}, Manuel=${manualMaxForDay}, Utilisé=${starsMax}`, 'info');
-    
+
     // Afficher le nom du jour dans les statistiques
     const currentDayName = dayNames[getCurrentDay()];
     section.querySelector('.total-count').textContent = `${totalCount} tâche(s) - ${currentDayName}`;
     section.querySelector('.completed-count').textContent = completedCount;
     section.querySelector('.stars-count').textContent = starsEarned;
-    
+
     // Mettre à jour le span d'affichage avec le max du jour
     const maxDisplay = section.querySelector('.stars-max-display');
     if (maxDisplay) {
         maxDisplay.textContent = starsMax;
     }
-    
+
     // Afficher l'input manuel avec la valeur actuelle (calculée ou manuelle)
     const maxInput = section.querySelector('.stars-max-input');
     if (maxInput) {
@@ -443,18 +445,22 @@ async function renderPersonTasks(person, tasks) {
         // Ajouter un placeholder pour indiquer la valeur auto
         maxInput.placeholder = `Auto: ${calculatedMax}`;
     }
-    
+
+    // Calculer les minutes bonus (Overflow uniquement)
+    // Si on a plus d'étoiles que le max, chaque étoile supplémentaire vaut 1 minute
+    const bonusMinutes = Math.max(0, starsEarned - starsMax);
+
     // Calculer et mettre à jour la barre de progression avec système manuel simple
-    updateProgressBar(section, starsEarned, starsMax);
-    
+    updateProgressBar(section, starsEarned, starsMax, bonusMinutes);
+
     // Vider le conteneur
     container.innerHTML = '';
-    
+
     if (tasks.length === 0) {
         container.innerHTML = '<div class="no-tasks">Aucune tâche pour le moment</div>';
         return;
     }
-    
+
     // Créer les éléments de tâche
     tasks.forEach(task => {
         const taskElement = createTaskElement(task, person);
@@ -469,16 +475,16 @@ function createTaskElement(task, person) {
     div.dataset.taskId = task.id;
     div.dataset.assignedTo = task.assignedTo;
     div.draggable = true;
-    
-    const starsDisplay = task.isPenalty 
-        ? `-${task.stars || 1}⭐` 
+
+    const starsDisplay = task.isPenalty
+        ? `-${task.stars || 1}⭐`
         : '⭐'.repeat(task.stars || 1);
-    
+
     // Ajouter une classe spéciale pour les pénalités
     if (task.isPenalty) {
         div.classList.add('penalty-item');
     }
-    
+
     div.innerHTML = `
         <div class="task-header">
             <div class="drag-handle" title="Glisser pour réorganiser">⋮⋮</div>
@@ -514,7 +520,7 @@ function createTaskElement(task, person) {
             </button>
         </div>
     `;
-    
+
     // Ajouter les événements de drag & drop
     div.addEventListener('dragstart', handleDragStart);
     div.addEventListener('dragover', handleDragOver);
@@ -522,12 +528,12 @@ function createTaskElement(task, person) {
     div.addEventListener('dragend', handleDragEnd);
     div.addEventListener('dragenter', handleDragEnter);
     div.addEventListener('dragleave', handleDragLeave);
-    
+
     return div;
 }
 
 // Basculer l'état de complétion d'une tâche
-window.toggleTaskCompletion = async function(taskId, completed) {
+window.toggleTaskCompletion = async function (taskId, completed) {
     try {
         const taskRef = doc(window.db, 'tasks', taskId);
         await updateDoc(taskRef, {
@@ -541,18 +547,18 @@ window.toggleTaskCompletion = async function(taskId, completed) {
 };
 
 // Supprimer une tâche
-window.deleteTask = async function(taskId) {
+window.deleteTask = async function (taskId) {
     try {
         // Récupérer d'abord la tâche pour vérifier son dayOfWeek
         const taskDoc = await getDoc(doc(window.db, 'tasks', taskId));
-        
+
         if (!taskDoc.exists()) {
             showNotification('Tâche introuvable', 'error');
             return;
         }
-        
+
         const taskData = taskDoc.data();
-        
+
         // Si la tâche n'a pas de dayOfWeek (ancienne tâche)
         if (taskData.dayOfWeek === undefined || taskData.dayOfWeek === null) {
             const shouldMigrate = confirm(
@@ -563,17 +569,17 @@ window.deleteTask = async function(taskId) {
                 'https://activity-day-to-day-test.web.app/migrate-browser.html\n\n' +
                 'Voulez-vous quand même la supprimer ?'
             );
-            
+
             if (!shouldMigrate) {
                 return;
             }
         }
-        
+
         // Confirmation finale
         if (!confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?')) {
             return;
         }
-        
+
         await deleteDoc(doc(window.db, 'tasks', taskId));
         showNotification('Tâche supprimée', 'success');
     } catch (error) {
@@ -585,7 +591,7 @@ window.deleteTask = async function(taskId) {
 // ===== RESET DES TÂCHES =====
 
 // Réinitialiser toutes les tâches d'une personne
-window.resetPersonTasks = async function(person) {
+window.resetPersonTasks = async function (person) {
     // Mapper le nom de la personne pour l'affichage
     const personNames = {
         papa: 'Papa',
@@ -593,14 +599,14 @@ window.resetPersonTasks = async function(person) {
         bastien: 'Bastien',
         florent: 'Florent'
     };
-    
+
     const personName = personNames[person] || person;
-    
+
     // Demander confirmation
     if (!confirm(`Voulez-vous vraiment réinitialiser toutes les tâches de ${personName} ?\n\nToutes les tâches cochées seront décochées.`)) {
         return;
     }
-    
+
     try {
         // Récupérer toutes les tâches cochées de cette personne
         const tasksSnapshot = await getDocs(
@@ -610,7 +616,7 @@ window.resetPersonTasks = async function(person) {
                 where('completed', '==', true)
             )
         );
-        
+
         // Décocher toutes les tâches en batch
         const batch = [];
         tasksSnapshot.forEach((taskDoc) => {
@@ -621,14 +627,14 @@ window.resetPersonTasks = async function(person) {
                 })
             );
         });
-        
+
         if (batch.length === 0) {
             showNotification(`${personName} n'a aucune tâche cochée`, 'info');
             return;
         }
-        
+
         await Promise.all(batch);
-        
+
         showNotification(`✅ ${batch.length} tâche(s) de ${personName} réinitialisée(s)`, 'success');
     } catch (error) {
         console.error('Erreur lors de la réinitialisation:', error);
@@ -639,17 +645,17 @@ window.resetPersonTasks = async function(person) {
 // ===== ÉDITION DE TÂCHE =====
 
 // Ouvrir la modale d'édition et charger les données de la tâche
-window.editTask = async function(taskId) {
+window.editTask = async function (taskId) {
     try {
         const taskDoc = await getDoc(doc(window.db, 'tasks', taskId));
-        
+
         if (!taskDoc.exists()) {
             showNotification('Tâche introuvable', 'error');
             return;
         }
-        
+
         const task = taskDoc.data();
-        
+
         // Remplir le formulaire avec les données de la tâche
         document.getElementById('editTaskId').value = taskId;
         document.getElementById('editTaskTitle').value = task.title;
@@ -657,15 +663,15 @@ window.editTask = async function(taskId) {
         document.getElementById('editAssignedTo').value = task.assignedTo;
         document.getElementById('editStars').value = task.stars;
         document.getElementById('editCategory').value = task.category;
-        
+
         // Ouvrir la modale
         document.getElementById('editTaskModal').classList.remove('hidden');
-        
+
         // Focus sur le titre après l'animation
         setTimeout(() => {
             document.getElementById('editTaskTitle').focus();
         }, 300);
-        
+
     } catch (error) {
         console.error('Erreur lors du chargement de la tâche:', error);
         showNotification('Erreur lors du chargement', 'error');
@@ -681,7 +687,7 @@ function closeEditTaskModal() {
 // Gérer la soumission du formulaire d'édition
 async function handleEditTaskSubmit(e) {
     e.preventDefault();
-    
+
     const taskId = document.getElementById('editTaskId').value;
     const taskData = {
         title: document.getElementById('editTaskTitle').value.trim(),
@@ -691,13 +697,13 @@ async function handleEditTaskSubmit(e) {
         category: document.getElementById('editCategory').value,
         updatedAt: serverTimestamp()
     };
-    
+
     try {
         await updateDoc(doc(window.db, 'tasks', taskId), taskData);
-        
+
         showNotification('✅ Tâche modifiée avec succès !', 'success');
         closeEditTaskModal();
-        
+
     } catch (error) {
         console.error('Erreur lors de la modification:', error);
         showNotification('Erreur lors de la modification', 'error');
@@ -710,10 +716,10 @@ function handleFilterClick(e) {
     document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.classList.remove('active');
     });
-    
+
     // Ajouter la classe active au bouton cliqué
     e.target.classList.add('active');
-    
+
     // Appliquer le filtre
     const filter = e.target.dataset.filter;
     currentFilter = filter;
@@ -723,15 +729,15 @@ function handleFilterClick(e) {
 // Appliquer le filtre
 function applyFilter(filter) {
     const sections = document.querySelectorAll('.person-section');
-    
+
     sections.forEach(section => {
         const person = section.dataset.person;
         const header = section.querySelector('.person-header');
         const progressSection = section.querySelector('.progress-section');
-        
+
         if (filter === 'all' || filter === person) {
             section.classList.remove('hidden');
-            
+
             // Si on filtre par une personne spécifique (pas "all"), rendre le header sticky
             if (filter !== 'all' && filter === person) {
                 header.classList.add('sticky-header');
@@ -760,13 +766,13 @@ function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
     notification.className = `notification notification-${type}`;
     notification.textContent = message;
-    
+
     // Déterminer la couleur selon le type
     let bgColor;
     if (type === 'success') bgColor = '#4CAF50';
     else if (type === 'error') bgColor = '#f44336';
     else bgColor = '#2196F3'; // info
-    
+
     // Styles inline pour la notification
     Object.assign(notification.style, {
         position: 'fixed',
@@ -780,9 +786,9 @@ function showNotification(message, type = 'info') {
         zIndex: '10000',
         animation: 'slideIn 0.3s ease'
     });
-    
+
     document.body.appendChild(notification);
-    
+
     // Retirer la notification après 3 secondes
     setTimeout(() => {
         notification.style.animation = 'slideOut 0.3s ease';
@@ -793,59 +799,89 @@ function showNotification(message, type = 'info') {
 }
 
 // Mettre à jour la barre de progression
-function updateProgressBar(section, starsEarned, starsMax) {
+function updateProgressBar(section, starsEarned, starsMax, bonusMinutes = 0) {
     const progressFill = section.querySelector('.progress-fill');
     const progressValue = section.querySelector('.progress-value');
     const milestones = section.querySelectorAll('.milestone');
-    
+
     // Système MANUEL SIMPLE :
     // - Max défini manuellement (ou calculé automatiquement par défaut)
     // - Toutes les étoiles (normales + bonus) comptent pareil
     // - Pénalités déjà soustraites dans starsEarned
     // - Calcul : (étoiles gagnées / max) × 100%
-    
-    const percentage = starsMax > 0 
+
+    const percentage = starsMax > 0
         ? Math.round((starsEarned / starsMax) * 100)
         : 0;
-    
+
+    // Calculer le temps de base gagné (max 15 min)
+    let baseMinutes = 0;
+    if (percentage >= 100) baseMinutes = 15;
+    else if (percentage >= 66) baseMinutes = 10;
+    else if (percentage >= 33) baseMinutes = 5;
+
+    // Total avec bonus
+    const totalMinutes = baseMinutes + bonusMinutes;
+
     // Mettre à jour la barre de progression
+    // NOUVEAU : 100% logique = 100% visuel, le bonus dépasse (overflow)
     if (progressFill) {
+        // On ne cape plus à 100% pour le visuel, on laisse dépasser
+        // On garde le pourcentage réel pour l'affichage
         progressFill.style.width = `${percentage}%`;
         progressFill.setAttribute('data-progress', percentage);
+
+        // Changer la couleur si on dépasse 100% (Bonus)
+        if (percentage > 100) {
+            progressFill.classList.add('has-bonus');
+        } else {
+            progressFill.classList.remove('has-bonus');
+        }
     }
-    
-    // Mettre à jour le texte du pourcentage
+
+    // Mettre à jour le texte du pourcentage et du temps
     if (progressValue) {
-        progressValue.textContent = percentage;
+        // Affichage détaillé : "100% (15m + 5m bonus = 20m)"
+        if (bonusMinutes > 0) {
+            progressValue.innerHTML = `
+                ${percentage}% 
+                <span class="time-details" style="font-size: 0.8em; margin-left: 10px; color: #4CAF50;">
+                    (⏱️ ${baseMinutes}m + 🎁 ${bonusMinutes}m = <strong>${totalMinutes}m</strong>)
+                </span>`;
+        } else {
+            progressValue.innerHTML = `${percentage}% <span class="time-details" style="font-size: 0.8em; margin-left: 10px;">(⏱️ ${baseMinutes}m)</span>`;
+        }
     }
-    
-    // Définir les récompenses pour chaque palier
+
+    // Définir les récompenses pour chaque palier (3 paliers : 33%, 66%, 100%)
     const rewards = {
         0: '',
-        25: '📺 5min',
-        50: '📺 10min',
-        75: '📺 15min ou 🎮 15min',
-        100: '📺 20min ou 🎮 20min'
+        33: '📺 5min',
+        66: '📺 10min',
+        100: '📺 15min'
     };
-    
+
     // Trouver le palier actuel atteint
     let currentMilestone = 0;
     if (percentage >= 100) currentMilestone = 100;
-    else if (percentage >= 75) currentMilestone = 75;
-    else if (percentage >= 50) currentMilestone = 50;
-    else if (percentage >= 25) currentMilestone = 25;
-    
+    else if (percentage >= 66) currentMilestone = 66;
+    else if (percentage >= 33) currentMilestone = 33;
+
     // Afficher la récompense du palier actuel
     const rewardSpan = section.querySelector('.current-reward');
     if (rewardSpan) {
-        rewardSpan.textContent = rewards[currentMilestone];
+        if (currentMilestone > 0) {
+            rewardSpan.textContent = rewards[currentMilestone];
+            rewardSpan.style.display = 'inline-block';
+        } else {
+            rewardSpan.style.display = 'none';
+        }
     }
-    
-    // Mettre à jour les paliers (25%, 50%, 75%, 100%)
-    // Masquer les paliers dépassés (ceux qui sont complètement atteints)
+
+    // Mettre à jour les paliers (33%, 66%, 100%)
     milestones.forEach(milestone => {
         const milestoneValue = parseInt(milestone.getAttribute('data-milestone'));
-        
+
         if (percentage >= milestoneValue) {
             milestone.classList.add('unlocked');
             // Cacher les paliers dépassés (sauf le 100%)
@@ -882,7 +918,7 @@ function handleDragOver(e) {
 
 function handleDragEnter(e) {
     const target = e.currentTarget;
-    if (draggedElement && target !== draggedElement && 
+    if (draggedElement && target !== draggedElement &&
         target.classList.contains('task-item') &&
         target.dataset.assignedTo === draggedElement.dataset.assignedTo) {
         target.classList.add('drag-over');
@@ -898,41 +934,41 @@ async function handleDrop(e) {
         e.stopPropagation();
     }
     e.preventDefault();
-    
+
     const target = e.currentTarget;
     target.classList.remove('drag-over');
-    
-    if (draggedElement && target !== draggedElement && 
+
+    if (draggedElement && target !== draggedElement &&
         target.classList.contains('task-item') &&
         target.dataset.assignedTo === draggedElement.dataset.assignedTo) {
-        
+
         // Réorganiser visuellement
         const container = target.parentNode;
         const allTasks = Array.from(container.querySelectorAll('.task-item'));
         const draggedIndex = allTasks.indexOf(draggedElement);
         const targetIndex = allTasks.indexOf(target);
-        
+
         if (draggedIndex < targetIndex) {
             target.parentNode.insertBefore(draggedElement, target.nextSibling);
         } else {
             target.parentNode.insertBefore(draggedElement, target);
         }
-        
+
         // Mettre à jour l'ordre dans Firestore
         await updateTasksOrder(container);
     }
-    
+
     return false;
 }
 
 function handleDragEnd(e) {
     e.currentTarget.classList.remove('dragging');
-    
+
     // Retirer les classes drag-over de tous les éléments
     document.querySelectorAll('.task-item').forEach(item => {
         item.classList.remove('drag-over');
     });
-    
+
     draggedElement = null;
 }
 
@@ -940,7 +976,7 @@ function handleDragEnd(e) {
 async function updateTasksOrder(container) {
     const tasks = Array.from(container.querySelectorAll('.task-item'));
     const batch = [];
-    
+
     tasks.forEach((taskElement, index) => {
         const taskId = taskElement.dataset.taskId;
         batch.push(
@@ -950,7 +986,7 @@ async function updateTasksOrder(container) {
             })
         );
     });
-    
+
     try {
         await Promise.all(batch);
     } catch (error) {
@@ -968,17 +1004,17 @@ function escapeHtml(text) {
 
 function formatDate(timestamp) {
     if (!timestamp) return 'Aujourd\'hui';
-    
+
     // Gérer les timestamps Firebase
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
     const now = new Date();
     const diff = now - date;
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    
+
     if (days === 0) return 'Aujourd\'hui';
     if (days === 1) return 'Hier';
     if (days < 7) return `Il y a ${days} jours`;
-    
+
     return date.toLocaleDateString('fr-FR');
 }
 
@@ -1000,11 +1036,11 @@ function openPinModal() {
     const modal = document.getElementById('pinModal');
     const pinInput = document.getElementById('pinInput');
     const pinError = document.getElementById('pinError');
-    
+
     modal.classList.remove('hidden');
     pinInput.value = '';
     pinError.classList.add('hidden');
-    
+
     // Focus sur l'input après l'animation
     setTimeout(() => {
         pinInput.focus();
@@ -1022,7 +1058,7 @@ function validatePin() {
     const pinInput = document.getElementById('pinInput');
     const pinError = document.getElementById('pinError');
     const enteredPin = pinInput.value;
-    
+
     if (enteredPin === ADMIN_PIN) {
         // Code correct
         enableAdminMode();
@@ -1033,7 +1069,7 @@ function validatePin() {
         pinError.classList.remove('hidden');
         pinInput.value = '';
         pinInput.focus();
-        
+
         // Masquer l'erreur après 3 secondes
         setTimeout(() => {
             pinError.classList.add('hidden');
@@ -1046,21 +1082,21 @@ function enableAdminMode() {
     isAdminMode = true;
     const adminBtn = document.getElementById('adminModeBtn');
     const container = document.querySelector('.container');
-    
+
     // Changer l'apparence du bouton
     adminBtn.classList.add('active');
     adminBtn.textContent = '🔓';
     adminBtn.title = 'Mode Admin - Cliquer pour désactiver';
-    
+
     // Ajouter la classe pour montrer les boutons de suppression et les inputs
     container.classList.add('admin-mode-active');
-    
+
     // Afficher le lien Admin Reset
     const resetAdminLink = document.querySelector('.reset-admin-btn');
     if (resetAdminLink) {
         resetAdminLink.style.display = 'inline-block';
     }
-    
+
     // En mode admin, on peut afficher la zone de debug à la demande (via le bouton Actualiser)
 }
 
@@ -1069,12 +1105,12 @@ function disableAdminMode() {
     isAdminMode = false;
     const adminBtn = document.getElementById('adminModeBtn');
     const container = document.querySelector('.container');
-    
+
     // Restaurer l'apparence du bouton
     adminBtn.classList.remove('active');
     adminBtn.textContent = '🔒';
     adminBtn.title = 'Mode Admin - Activer pour supprimer';
-    
+
     // Masquer le panneau de debug et nettoyer les logs en sortie du mode admin
     const debugPanel = document.getElementById('debugPanel');
     if (debugPanel) {
@@ -1084,44 +1120,44 @@ function disableAdminMode() {
     if (debugLogsDiv) {
         debugLogsDiv.innerHTML = '';
     }
-    
+
     // Retirer la classe pour cacher les boutons de suppression et les inputs
     container.classList.remove('admin-mode-active');
-    
+
     // Masquer le lien Admin Reset
     const resetAdminLink = document.querySelector('.reset-admin-btn');
     if (resetAdminLink) {
         resetAdminLink.style.display = 'none';
     }
-    
+
     showNotification('🔒 Mode Admin désactivé', 'info');
 }
 
 // ===== NAVIGATION DES JOURS =====
 
 // Changer de jour
-window.changeDay = function(dayNumber) {
+window.changeDay = function (dayNumber) {
     selectedDay = dayNumber;
     updateDayDisplay();
     loadTasks(); // Recharger les tâches pour le nouveau jour
 };
 
 // Aller au jour précédent
-window.previousDay = function() {
+window.previousDay = function () {
     const currentDayValue = getCurrentDay();
     const newDay = (currentDayValue - 1 + 7) % 7;
     changeDay(newDay);
 };
 
 // Aller au jour suivant
-window.nextDay = function() {
+window.nextDay = function () {
     const currentDayValue = getCurrentDay();
     const newDay = (currentDayValue + 1) % 7;
     changeDay(newDay);
 };
 
 // Retour à aujourd'hui
-window.goToToday = function() {
+window.goToToday = function () {
     selectedDay = null;
     updateDayDisplay();
     loadTasks();
@@ -1131,21 +1167,21 @@ window.goToToday = function() {
 function updateDayDisplay() {
     const currentDayValue = getCurrentDay();
     const todayValue = getTodayDay();
-    
+
     // Calculer la date du jour sélectionné
     const today = new Date();
     const todayDayOfWeek = today.getDay();
     const daysOffset = currentDayValue - todayDayOfWeek;
     const selectedDate = new Date(today);
     selectedDate.setDate(today.getDate() + daysOffset);
-    
+
     // Mettre à jour le titre principal
     const dayTitle = document.getElementById('dayNavigationTitle');
     if (dayTitle) {
         const dateStr = selectedDate.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
         dayTitle.innerHTML = `📅 ${dayNames[currentDayValue].toUpperCase()} ${dateStr}`;
     }
-    
+
     // Mettre à jour les boutons de navigation (prev/next)
     const prevDayName = document.getElementById('prevDayName');
     const nextDayName = document.getElementById('nextDayName');
@@ -1157,7 +1193,7 @@ function updateDayDisplay() {
         const nextDay = (currentDayValue + 1) % 7;
         nextDayName.textContent = dayNamesShort[nextDay];
     }
-    
+
     // Mettre à jour les boutons rapides (actif/inactif)
     for (let i = 0; i <= 6; i++) {
         const btn = document.getElementById(`dayBtn${i}`);
@@ -1169,7 +1205,7 @@ function updateDayDisplay() {
             }
         }
     }
-    
+
     // Afficher/masquer le bandeau "Vous consultez"
     const warningBanner = document.getElementById('dayWarningBanner');
     if (warningBanner) {
@@ -1184,7 +1220,7 @@ function updateDayDisplay() {
             if (warningTodayName) {
                 warningTodayName.textContent = dayNames[todayValue];
                 const todayDateStr = today.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
-                document.getElementById('warningTodayName').parentElement.innerHTML = 
+                document.getElementById('warningTodayName').parentElement.innerHTML =
                     `<small>(Aujourd'hui = ${dayNames[todayValue]} ${todayDateStr})</small>`;
             }
         } else {
@@ -1200,7 +1236,7 @@ function initializeDayNavigation() {
 }
 
 // Fonction pour cocher/décocher tous les jours dans le formulaire
-window.toggleAllDays = function(checkbox) {
+window.toggleAllDays = function (checkbox) {
     const dayCheckboxes = document.querySelectorAll('.day-checkbox');
     dayCheckboxes.forEach(cb => {
         cb.checked = checkbox.checked;
@@ -1257,11 +1293,11 @@ style.textContent = `
 document.head.appendChild(style);
 
 // Fonction pour sauvegarder le max manuel d'étoiles d'une personne POUR UN JOUR SPÉCIFIQUE
-window.updatePersonMaxStars = async function(person, maxValue) {
+window.updatePersonMaxStars = async function (person, maxValue) {
     const max = parseInt(maxValue) || 0;
     const currentDay = getCurrentDay();
     const dayName = dayNames[currentDay];
-    
+
     try {
         // Sauvegarder dans Firestore au lieu de localStorage
         const settingId = `${person}_day${currentDay}`;
@@ -1271,16 +1307,16 @@ window.updatePersonMaxStars = async function(person, maxValue) {
             maxStars: max,
             updatedAt: serverTimestamp()
         });
-        
+
         // Mettre à jour le cache en mémoire
         const cacheKey = `${person}_day${currentDay}`;
         maxStarsCache[cacheKey] = max;
-        
+
         debugLog(`💾 Max sauvegardé dans Firestore: ${person} ${dayName} = ${max}⭐`, 'success');
-        
+
         // Recharger les tâches pour mettre à jour l'affichage
         loadTasks();
-        
+
         showNotification(`✅ Max d'étoiles pour ${person} le ${dayName} : ${max}⭐`, 'success');
     } catch (error) {
         console.error('Erreur sauvegarde max:', error);
@@ -1295,18 +1331,18 @@ const maxStarsCache = {};
 // Fonction pour récupérer le max manuel d'étoiles d'une personne pour un jour spécifique
 async function getPersonMaxStarsForDay(person, dayOfWeek) {
     const cacheKey = `${person}_day${dayOfWeek}`;
-    
+
     // Si en cache, retourner immédiatement
     if (maxStarsCache[cacheKey] !== undefined) {
         return maxStarsCache[cacheKey];
     }
-    
+
     try {
         // Sinon, charger depuis Firestore
         const settingId = `${person}_day${dayOfWeek}`;
         const docRef = doc(window.db, 'personSettings', settingId);
         const docSnap = await getDoc(docRef);
-        
+
         if (docSnap.exists()) {
             const maxStars = docSnap.data().maxStars;
             maxStarsCache[cacheKey] = maxStars;
@@ -1341,7 +1377,7 @@ async function preloadMaxStars() {
 
 function showOldTasksWarning(count) {
     let warningDiv = document.getElementById('oldTasksWarning');
-    
+
     if (!warningDiv) {
         // Créer le bandeau d'avertissement
         warningDiv = document.createElement('div');
@@ -1359,7 +1395,7 @@ function showOldTasksWarning(count) {
             justify-content: space-between;
             animation: slideInDown 0.5s ease;
         `;
-        
+
         warningDiv.innerHTML = `
             <div style="display: flex; align-items: center; gap: 15px; flex: 1;">
                 <span style="font-size: 2em;">⚠️</span>
@@ -1380,7 +1416,7 @@ function showOldTasksWarning(count) {
                 🔄 Migrer
             </button>
         `;
-        
+
         // Insérer après la navigation des jours
         const dayNav = document.querySelector('.day-navigation');
         if (dayNav && dayNav.parentNode) {
@@ -1397,21 +1433,21 @@ function hideOldTasksWarning() {
 }
 
 // Fonction pour cocher/décocher toutes les tâches d'une personne
-window.checkAllTasks = async function(person, checked) {
+window.checkAllTasks = async function (person, checked) {
     try {
         // Récupérer toutes les tâches de cette personne
         const tasksQuery = query(
             collection(window.db, 'tasks'),
             where('assignedTo', '==', person)
         );
-        
+
         const snapshot = await getDocs(tasksQuery);
-        
+
         if (snapshot.empty) {
             showNotification(`Aucune tâche pour ${person}`, 'info');
             return;
         }
-        
+
         // Mettre à jour toutes les tâches (normales, bonus ET pénalités)
         const updatePromises = [];
         snapshot.forEach(docSnap => {
@@ -1423,12 +1459,12 @@ window.checkAllTasks = async function(person, checked) {
                 })
             );
         });
-        
+
         await Promise.all(updatePromises);
-        
+
         const action = checked ? 'cochées' : 'décochées';
         showNotification(`✅ Toutes les tâches de ${person} ont été ${action}`, 'success');
-        
+
     } catch (error) {
         console.error('Erreur lors du cochage des tâches:', error);
         showNotification('❌ Erreur lors de la mise à jour', 'error');
