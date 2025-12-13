@@ -294,6 +294,15 @@ body {
     box-shadow: 0 2px 6px rgba(76, 175, 80, 0.3);
 }
 
+/* Éléments visibles uniquement en mode admin */
+.admin-only {
+    display: none !important;
+}
+
+.admin-mode-active .admin-only {
+    display: inline-flex !important;
+}
+
 .btn-check-all:hover {
     background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
     transform: translateY(-2px);

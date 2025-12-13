@@ -60,6 +60,15 @@ async function initializeApp() {
     // Précharger les max d'étoiles depuis Firestore
     await preloadMaxStars();
 
+    // Précharger les max d'étoiles depuis Firestore
+    await preloadMaxStars();
+
+    // Vérifier si le mode admin était actif
+    // IMPORTANT : On attend que le DOM soit prêt pour ajouter la classe
+    if (sessionStorage.getItem('isAdminMode') === 'true') {
+        enableAdminMode();
+    }
+
     // Charger les tâches
     loadTasks();
 }
@@ -1095,6 +1104,7 @@ function validatePin() {
 // Activer le mode admin
 function enableAdminMode() {
     isAdminMode = true;
+    sessionStorage.setItem('isAdminMode', 'true');
     const adminBtn = document.getElementById('adminModeBtn');
     const container = document.querySelector('.container');
 
@@ -1118,6 +1128,7 @@ function enableAdminMode() {
 // Désactiver le mode admin
 function disableAdminMode() {
     isAdminMode = false;
+    sessionStorage.removeItem('isAdminMode');
     const adminBtn = document.getElementById('adminModeBtn');
     const container = document.querySelector('.container');
 
