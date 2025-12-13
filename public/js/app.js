@@ -1461,22 +1461,34 @@ function hideOldTasksWarning() {
 // Fonction pour cocher/décocher toutes les tâches d'une personne
 window.checkAllTasks = async function (person, checked) {
     try {
-        // Récupérer toutes les tâches de cette personne
+        const currentDay = getCurrentDay();
+
+        // Récupérer les tâches de cette personne pour le jour sélectionné
         const tasksQuery = query(
             collection(window.db, 'tasks'),
-            where('assignedTo', '==', person)
+            where('assignedTo', '==', person),
+            where('dayOfWeek', '==', currentDay)
         );
 
         const snapshot = await getDocs(tasksQuery);
 
         if (snapshot.empty) {
-            showNotification(`Aucune tâche pour ${person}`, 'info');
+            showNotification(`Aucune tâche pour ${person} ce jour`, 'info');
             return;
         }
 
-        // Mettre à jour toutes les tâches (normales, bonus ET pénalités)
+        // Mettre à jour UNIQUEMENT les tâches normales (pas de bonus, pénalités ou fautes graves)
         const updatePromises = [];
+        let updatedCount = 0;
+
         snapshot.forEach(docSnap => {
+            const taskData = docSnap.data();
+
+            // Filtre : Exclure Bonus, Pénalités, Fautes Graves
+            if (taskData.isBonus || taskData.isPenalty || taskData.isSeriousFault) {
+                return;
+            }
+
             const taskRef = doc(window.db, 'tasks', docSnap.id);
             updatePromises.push(
                 updateDoc(taskRef, {
@@ -1484,12 +1496,18 @@ window.checkAllTasks = async function (person, checked) {
                     updatedAt: serverTimestamp()
                 })
             );
+            updatedCount++;
         });
+
+        if (updatedCount === 0) {
+            showNotification(`Aucune tâche normale à modifier pour ${person}`, 'info');
+            return;
+        }
 
         await Promise.all(updatePromises);
 
         const action = checked ? 'cochées' : 'décochées';
-        showNotification(`✅ Toutes les tâches de ${person} ont été ${action}`, 'success');
+        showNotification(`✅ ${updatedCount} tâches normales de ${person} ont été ${action}`, 'success');
 
     } catch (error) {
         console.error('Erreur lors du cochage des tâches:', error);
