@@ -121,6 +121,12 @@ function renderTasks(tasks) {
         row.dataset.taskId = task.id;
         row.dataset.currentOrder = task.order || 0;
 
+        // Style visuel pour inactif
+        if (task.isActive === false) {
+            row.style.opacity = '0.6';
+            row.style.background = '#f5f5f5';
+        }
+
         // Icône selon type
         let icon = '';
         if (task.isBonus) icon = '🎁 ';
@@ -141,8 +147,18 @@ function renderTasks(tasks) {
                 <div class="row-stars">
                     ${task.stars} ⭐
                 </div>
+                <!-- Status Badge -->
+                <div style="min-width: 80px; text-align: center;">
+                    ${task.isActive === false
+                ? '<span style="background:#eee; color:#666; padding:4px 8px; border-radius:12px; font-size:0.8rem;">Inactif</span>'
+                : '<span style="background:#e8f5e9; color:#2e7d32; padding:4px 8px; border-radius:12px; font-size:0.8rem;">Actif</span>'}
+                </div>
             </div>
             <div class="row-actions">
+                <button class="btn-icon" onclick="toggleTaskActive('${task.id}', ${task.isActive !== false})" 
+                        title="${task.isActive === false ? 'Réactiver' : 'Désactiver'}">
+                    ${task.isActive === false ? '👁️' : '👁️‍🗨️'}
+                </button>
                 <button class="btn-icon" onclick="editTask('${task.id}')" title="Modifier">✏️</button>
                 <button class="btn-icon" onclick="deleteTask('${task.id}')" title="Supprimer" style="color: #f44336;">🗑️</button>
             </div>
@@ -227,6 +243,25 @@ window.deleteTask = async function (taskId) {
             console.error("Erreur suppression:", error);
             showNotification('Erreur lors de la suppression', 'error');
         }
+    }
+}
+
+
+// ===== Gestion Active/Inactive =====
+window.toggleTaskActive = async function (taskId, currentStatus) {
+    // currentStatus est true si actif, false si inactif
+    // On veut inverser
+    const newStatus = !currentStatus;
+
+    try {
+        await updateDoc(doc(window.db, 'tasks', taskId), {
+            isActive: newStatus,
+            updatedAt: serverTimestamp()
+        });
+        showNotification(newStatus ? 'Tâche réactivée' : 'Tâche désactivée', 'success');
+    } catch (error) {
+        console.error("Erreur toggle active:", error);
+        showNotification('Erreur lors du changement de statut', 'error');
     }
 };
 

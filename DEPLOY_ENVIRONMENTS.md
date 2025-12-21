@@ -36,12 +36,13 @@ firebase use test
 
 # 2. Copier la version TEST
 cp public/index.test.html public/index.html
+cp public/manage-tasks-person.test.html public/manage-tasks-person.html
 
 # 3. Déployer
 firebase deploy --only hosting
 
 # 4. Restaurer l'original
-git checkout public/index.html
+git checkout public/index.html public/manage-tasks-person.html
 ```
 
 ### Sur PRODUCTION

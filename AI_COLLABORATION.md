@@ -19,3 +19,10 @@ L'utilisateur a explicitement demandé (le 01/12/2025) que l'IA adopte une postu
 ## 📝 Mémoire du Projet
 
 Ce fichier sert de "mémoire" pour les futures sessions. L'IA doit consulter ce fichier au début de chaque nouvelle session pour se rappeler de cette posture.
+
+## 🔄 Règles de Processus
+
+1.  **Nouvelle demande = Nouvelle branche** : Toujours créer une nouvelle branche pour chaque nouvelle demande ou fonctionnalité.
+2.  **Environnement TST** : Toujours travailler sur l'environnement/branche `TST`.
+3.  **Base TST** : S'assurer de partir de la base `TST` (et non `main` ou `PRD`) pour créer une nouvelle branche de travail.
+4.  **Déploiement PRD** : Toujours demander l'autorisation explicite avant de proposer un merge ou un déploiement vers `PRD` (Production).

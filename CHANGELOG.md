@@ -2,6 +2,25 @@
 
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
+## [1.2.0] - 2025-12-21
+
+### 🛠️ Désactivation Temporaire des Tâches
+
+**Nouvelle fonctionnalité** : Possibilité de désactiver/cacher des tâches sans les supprimer.
+
+#### Fonctionnalités
+- **Mode "Gérer"** : Nouveau bouton toggle (Active/Inactive) pour chaque tâche.
+- **Tableau de Bord** : Les tâches inactives sont masquées automatiquement.
+- **Désactivation** : Utile pour les vacances, les changements temporaires d'emploi du temps, etc.
+- **Réactivation** : Les tâches peuvent être réactivées en un clic et réapparaissent immédiatement avec leurs paramètres (étoiles, jours, etc.).
+
+#### Changements Techniques
+- **Nouveau champ** : `isActive` (boolean) dans Firestore.
+- **Rétrocompatibilité** : Les tâches existantes sans ce champ sont considérées comme actives par défaut.
+- **Interface** : Indicateurs visuels (opacité réduite, badges) pour les tâches inactives dans le mode gestion.
+
+---
+
 ## [1.1.0] - 2025-10-20
 
 ### ⭐ Ajout du Système d'Étoiles

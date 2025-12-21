@@ -346,7 +346,13 @@ function renderTasks(tasks) {
             return true;
         }
         // Sinon, vérifier si c'est le bon jour
-        return task.dayOfWeek === currentDayValue;
+        const isCorrectDay = task.dayOfWeek === currentDayValue;
+
+        // VERIFICATION ACTIVATION : Exclure si isActive === false
+        // (Par défaut undefined/null/true = actif)
+        const isActive = task.isActive !== false;
+
+        return isCorrectDay && isActive;
     });
 
     debugLog(`✅ Tâches pour ${currentDayName}: ${tasksForDay.length}`, 'success');
