@@ -240,8 +240,8 @@ temp/
 node_modules/
 
 # Firebase initialization scripts (contain API keys)
-public/init-reset.html
 public/js/init-reset-config.js
+public/js/firebase-config.js
 public/js/firebase-config.test.js
 public/js/firebase-config.prod.js
 public/*.test.html

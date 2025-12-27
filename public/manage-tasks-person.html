@@ -274,18 +274,17 @@
     <!-- Notification Container (reused from app.js logic) -->
 
     <!-- Firebase SDK -->
+    <!-- Firebase SDK -->
+    <script src="js/firebase-config.js"></script>
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBIggEt3Mv_L5E_1OpsuHIuuvAXCYcKzAw",
-            authDomain: "activity-day-to-day.firebaseapp.com",
-            projectId: "activity-day-to-day",
-            storageBucket: "activity-day-to-day.firebasestorage.app",
-            messagingSenderId: "44469659985",
-            appId: "1:44469659985:web:778b21561999f67a5a8b70"
-        };
+        // Configuration chargée depuis js/firebase-config.js
+        const firebaseConfig = window.firebaseConfig;
+        if (!firebaseConfig) {
+            console.error("❌ Configuration Firebase manquante !");
+        }
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);

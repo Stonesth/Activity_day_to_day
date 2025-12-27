@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Initialisation Reset Automatique - Activity Day to Day</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .info-box {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+
+        .success-box {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            display: none;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            display: block;
+            margin: 30px auto;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        ul {
+            line-height: 1.8;
+        }
+
+        .config-details {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .back-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>⏰ Initialisation Reset Automatique</h1>
+
+        <div class="info-box">
+            <h3>📋 Qu'est-ce que cette page fait ?</h3>
+            <p>Cette page va créer la configuration initiale dans Firestore pour activer le reset automatique quotidien
+                des tâches.</p>
+        </div>
+
+        <div class="warning-box">
+            <h3>⚠️ À exécuter UNE SEULE FOIS</h3>
+            <p>Cette initialisation ne doit être faite qu'une seule fois. Si la configuration existe déjà, vous serez
+                averti.</p>
+        </div>
+
+        <div class="config-details">
+            <h3>⚙️ Configuration qui sera créée :</h3>
+            <ul>
+                <li><strong>Activé :</strong> Oui ✅</li>
+                <li><strong>Heure de reset :</strong> 06:00 (Europe/Paris)</li>
+                <li><strong>Jours actifs :</strong> Lun, Mar, Mer, Jeu, Ven, Sam, Dim</li>
+                <li><strong>Email :</strong> pierre.thonon@gmail.com</li>
+                <li><strong>Notifications :</strong>
+                    <ul>
+                        <li>✅ Reset quotidien effectué</li>
+                        <li>✅ Erreurs</li>
+                        <li>⭕ Stats hebdomadaires (désactivé)</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+
+        <button id="initButton" onclick="runInit()">
+            🚀 Initialiser la Configuration
+        </button>
+
+        <div id="successBox" class="success-box">
+            <h3>✅ Configuration créée avec succès !</h3>
+            <p><strong>⏰ Premier reset :</strong> Demain matin à 06:00</p>
+            <p><strong>📧 Email de confirmation :</strong> pierre.thonon@gmail.com</p>
+            <p>Vous pouvez maintenant retourner à l'application principale.</p>
+        </div>
+
+        <div class="back-link">
+            <a href="index.html">← Retour à l'application</a>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="js/firebase-config.js"></script>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+        import { getFirestore, doc, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+
+        // Configuration chargée depuis js/firebase-config.js
+        const firebaseConfig = window.firebaseConfig;
+        if (!firebaseConfig) {
+            console.error("❌ Configuration Firebase manquante !");
+            alert("Configuration Firebase manquante ! Vérifiez public/js/firebase-config.js");
+        }
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.runInit = async function () {
+            const button = document.getElementById('initButton');
+            button.disabled = true;
+            button.textContent = '⏳ Initialisation en cours...';
+
+            try {
+                if (!firebaseConfig) throw new Error("Configuration manquante");
+
+                // Vérifier si la config existe déjà
+                const configRef = doc(db, 'reset_config', 'main_config');
+                const configSnap = await getDoc(configRef);
+
+                if (configSnap.exists()) {
+                    const confirm = window.confirm('⚠️ La configuration existe déjà.\n\nVoulez-vous la remplacer ?');
+                    if (!confirm) {
+                        button.disabled = false;
+                        button.textContent = '🚀 Initialiser la Configuration';
+                        return;
+                    }
+                }
+
+                // Créer la configuration initiale
+                const initialConfig = {
+                    enabled: true,
+                    time: '06:00',
+                    timezone: 'Europe/Paris',
+                    activeDays: [1, 2, 3, 4, 5, 6, 0],
+                    lastReset: null,
+                    notifications: {
+                        email: {
+                            enabled: true,
+                            address: 'pierre.thonon@gmail.com',
+                            onSuccess: true,
+                            onError: true,
+                            weeklyStats: false
+                        }
+                    },
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                };
+
+                await setDoc(configRef, initialConfig);
+
+                console.log('✅ Configuration créée:', initialConfig);
+
+                // Afficher le message de succès
+                document.getElementById('successBox').style.display = 'block';
+                button.textContent = '✅ Configuration Créée';
+                button.style.background = '#28a745';
+
+            } catch (error) {
+                console.error('❌ Erreur:', error);
+                alert('❌ Erreur lors de l\'initialisation:\n\n' + error.message);
+                button.disabled = false;
+                button.textContent = '🚀 Initialiser la Configuration';
+            }
+        }
+    </script>
+</body>
+
+</html>
