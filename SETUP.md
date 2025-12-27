@@ -29,31 +29,18 @@
 5. Cochez "Configurer également Firebase Hosting"
 6. Cliquez sur "Enregistrer l'application"
 
-## Étape 4 : Récupérer la configuration Firebase
+## Étape 4 : Configurer l'application Web
 
-Vous verrez un objet de configuration qui ressemble à ceci :
+1. Copiez le fichier d'exemple :
+   ```bash
+   cp public/js/firebase-config.example.js public/js/firebase-config.js
+   ```
 
-```javascript
-const firebaseConfig = {
-  apiKey: "AIza....",
-  authDomain: "activity-day-to-day.firebaseapp.com",
-  projectId: "activity-day-to-day",
-  storageBucket: "activity-day-to-day.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "1:123456789:web:abc..."
-};
-```
-
-**IMPORTANT** : Copiez cette configuration !
-
-## Étape 5 : Mettre à jour le fichier index.html
-
-1. Ouvrez le fichier `public/index.html`
-2. Trouvez la section avec `firebaseConfig`
-3. Remplacez les valeurs `YOUR_...` par vos vraies valeurs de configuration
+2. Ouvrez `public/js/firebase-config.js`
+3. Remplacez les valeurs par celles de votre console Firebase :
 
 ```javascript
-const firebaseConfig = {
+export const firebaseConfig = {
     apiKey: "VOTRE_API_KEY",
     authDomain: "VOTRE_PROJECT_ID.firebaseapp.com",
     projectId: "VOTRE_PROJECT_ID",
@@ -62,6 +49,9 @@ const firebaseConfig = {
     appId: "VOTRE_APP_ID"
 };
 ```
+
+> **Note** : Ce fichier est ignoré par Git pour ne pas divulguer vos clés.
+
 
 ## Étape 6 : Installer Firebase CLI
 
